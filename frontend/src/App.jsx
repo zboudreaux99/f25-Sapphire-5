@@ -1,9 +1,18 @@
+import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-function App() {
 
+const apiCall = () => {
+  axios.get('http://localhost:8080').then((data) => {
+    console.log(data)
+  })
+}
+
+function App() {
+  apiCall();  //Check the console to see that server responds.
   return (
     <>
+    
     </>
   )
 }

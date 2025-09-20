@@ -1,6 +1,7 @@
 .gradle
 **/build/
 !**/src/**/build/
+/server/node_modules
 
 # Ignore Gradle GUI config
 gradle-app.setting
