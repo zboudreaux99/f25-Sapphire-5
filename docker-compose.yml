@@ -22,7 +22,7 @@ services:
       DB_PASSWORD: postgres
       DB_NAME: myapp
     ports:
-      - "5000"
+      - "8080"
     depends_on:
       - db
 
