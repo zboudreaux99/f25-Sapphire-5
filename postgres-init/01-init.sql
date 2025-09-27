@@ -13,13 +13,26 @@ CREATE TABLE Property (
     Zipcode VARCHAR(20)
 );
 
+CREATE TYPE user_role AS ENUM ('admin', 'manager', 'tenant');
+
+CREATE TABLE Users (
+    UserId SERIAL PRIMARY KEY,
+    Email VARCHAR(255) NOT NULL UNIQUE,
+    PasswordHash VARCHAR(255) NOT NULL,
+    Role user_role NOT NULL,
+    CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    LastLogin TIMESTAMP WITH TIME ZONE
+);
+
 CREATE TABLE Manager (
     ManagerId SERIAL PRIMARY KEY,
     Name VARCHAR(255) NOT NULL,
     Address VARCHAR(255),
     City VARCHAR(100),
     State VARCHAR(50),
-    Zipcode VARCHAR(20)
+    Zipcode VARCHAR(20),
+    UserId INT UNIQUE,
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE SET NULL
 );
 
 
@@ -59,8 +72,10 @@ CREATE TABLE SensorReading (
 CREATE TABLE Tenant (
     TenantId SERIAL PRIMARY KEY,
     Name VARCHAR(255) NOT NULL,
-    UnitId INT,
-    FOREIGN KEY (UnitId) REFERENCES Unit(UnitId) ON DELETE SET NULL
+    UnitId INT UNIQUE,
+    FOREIGN KEY (UnitId) REFERENCES Unit(UnitId) ON DELETE SET NULL,
+    UserId INT UNIQUE,
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE SET NULL
 );
 
 
