@@ -1,5 +1,5 @@
 -- ===============================================
--- DDL Script for Sapphire Sounds DB
+-- DDL SCHEMA for Sapphire Sounds DB
 -- This script will be executed when the database is first created.
 -- ===============================================
 
@@ -92,3 +92,30 @@ CREATE TABLE UnitRewards (
     FOREIGN KEY (UnitId) REFERENCES Unit(UnitId) ON DELETE CASCADE,
     FOREIGN KEY (RewardId) REFERENCES Reward(RewardId) ON DELETE CASCADE
 );
+
+CREATE TYPE complaint_status AS ENUM ('open', 'in_progress', 'resolved');
+
+CREATE TABLE Complaint (
+    ComplaintId SERIAL PRIMARY KEY,
+    InitiatingTenantId INT NOT NULL,
+    ComplainedAboutUnitId INT, 
+    ComplaintTimestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    Description TEXT,
+    Status complaint_status NOT NULL DEFAULT 'open',
+    FOREIGN KEY (InitiatingTenantId) REFERENCES Tenant(TenantId) ON DELETE CASCADE,
+    FOREIGN KEY (ComplainedAboutUnitId) REFERENCES Unit(UnitId) ON DELETE CASCADE
+);
+
+CREATE TABLE NoiseRule (
+    NoiseRuleId SERIAL PRIMARY KEY,
+    PropertyId INT NOT NULL,
+    Description VARCHAR(255),
+    ThresholdDb INT NOT NULL,
+    StartTime TIME NOT NULL,
+    EndTime TIME NOT NULL,
+    -- Array of integers for days of the week, following ISO 8601 standard (1=Monday, 7=Sunday)
+    DaysOfWeek INT[] NOT NULL,
+    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId) ON DELETE CASCADE,
+    CONSTRAINT no_overlapping_rules EXCLUDE (PropertyId WITH =, DaysOfWeek WITH &&, TSTZRANGE(StartTime::time, EndTime::time, '()') WITH &&)
+);
+

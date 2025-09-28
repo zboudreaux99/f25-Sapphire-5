@@ -1,0 +1,4 @@
+-- ===============================================
+-- DDL VIEWS for Sapphire Sounds DB
+-- This script will be executed when the database is first created.
+-- ===============================================
