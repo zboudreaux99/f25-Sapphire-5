@@ -1,0 +1,152 @@
+import { Carousel, Container, Row, Card, Button, Col, Nav, Navbar } from "react-bootstrap";
+import { useState } from 'react';
+import { useNavigate } from "react-router-dom";
+
+import Rewards from "./Rewards";
+import Report from "./Report";
+
+
+function Tenant() {
+    const navigate = useNavigate();
+
+    const [index, setIndex] = useState(0);
+
+    const handleSelect = (selectedIndex) => {
+        setIndex(selectedIndex);
+    };
+
+
+    const [showRewards, setShowRewards] = useState(false);
+    const handleShowRewards = () => setShowRewards(true);
+    const handleCloseRewards = () => setShowRewards(false);
+
+    const [showReport, setShowReport] = useState(false);
+    const handleShowReport = () => setShowReport(true);
+    const handleCloseReport = () => setShowReport(false);
+
+    return (
+        <>
+            <Container
+                fluid
+                className="vh-100 d-flex flex-column justify-content-center pt-5 gradient-background"
+            >
+                <Row className="w-100 justify-content-center">
+                    <h1 className="text-white mb-4">Welcome, May!</h1>
+                </Row>
+
+                <Row className="w-100 justify-content-center mb-4">
+                    <Col><h5 className="text-white">Tenant</h5></Col>
+                    <Col></Col>
+                    <Col><h5 className="text-white text-end text-middle">College Apartments</h5></Col>
+                </Row>
+
+                <Row className="justify-content-center">
+                    <Col>
+                        <Carousel activeIndex={index} onSelect={handleSelect} interval={null} indicators={false}>
+                            <Carousel.Item>
+                                <Card className="shadow-lg liquid-glass text-center mx-auto" style={{ backgroundColor: 'transparent', height: '300px', maxWidth: '600px' }}>
+                                    <Card.Body className="d-flex flex-column justify-content-center">
+                                        <Card.Title>September</Card.Title>
+                                        <Card.Text>
+                                            This is the content of the September's data. It will be displayed in graph form.
+                                        </Card.Text>
+                                    </Card.Body>
+                                </Card>
+                            </Carousel.Item>
+
+                            <Carousel.Item>
+                                <Card className="shadow-lg liquid-glass text-center mx-auto" style={{ backgroundColor: 'transparent', height: '300px', maxWidth: '600px' }}>
+                                    <Card.Body className="d-flex flex-column justify-content-center">
+                                        <Card.Title>October</Card.Title>
+                                        <Card.Text>
+                                            This is the content of the October's data. It will be displayed in graph form.
+                                        </Card.Text>
+                                    </Card.Body>
+                                </Card>
+                            </Carousel.Item>
+
+                            <Carousel.Item>
+                                <Card className="shadow-lg liquid-glass text-center mx-auto" style={{ backgroundColor: 'transparent', height: '300px', maxWidth: '600px' }}>
+                                    <Card.Body className="d-flex flex-column justify-content-center">
+                                        <Card.Title>November</Card.Title>
+                                        <Card.Text>
+                                            This is the content of the November's data. It will be displayed in graph form.
+                                        </Card.Text>
+                                    </Card.Body>
+                                </Card>
+                            </Carousel.Item>
+                        </Carousel>
+                    </Col>
+                </Row>
+
+                <Row>
+                    <Card className="" style={{ backgroundColor: 'transparent' }}>
+                        <Card.Body className="d-flex flex-column justify-content-center">
+                            <style>
+                                {`
+                                 .nav-link.active {
+                                color: white !important;
+                                background-color: #007bff !important;
+                                }
+                                `}
+                            </style>
+                            <Nav variant="tabs" defaultActiveKey="day">
+                                <Nav.Item>
+                                    <Nav.Link eventKey="week" style={{ color: 'white' }}>Week</Nav.Link>
+                                </Nav.Item>
+                                <Nav.Item>
+                                    <Nav.Link eventKey="day" style={{ color: 'white' }}>Day</Nav.Link>
+                                </Nav.Item>
+                                <Nav.Item>
+                                    <Nav.Link eventKey="hour" style={{ color: 'white' }}>Hour</Nav.Link>
+                                </Nav.Item>
+                            </Nav>
+                        </Card.Body>
+                    </Card>
+                </Row>
+            </Container>
+
+
+
+            <Navbar
+                fixed="bottom"
+                bg="dark"
+                variant="dark"
+                className="d-flex justify-content-around py-2"
+            >
+                <Nav.Item>
+                    <Nav.Link onClick={() => navigate("/welcome")} className="text-center text-white">
+                        <div><i className="bi bi-house-fill"></i></div>
+                        <small>Home</small>
+                    </Nav.Link>
+                </Nav.Item>
+
+                <Nav.Item>
+                    <Nav.Link onClick={handleShowReport} className="text-center text-white">
+                        <div><i className="bi bi-flag-fill"></i></div>
+                        <small>Report</small>
+                    </Nav.Link>
+                </Nav.Item>
+
+                <Nav.Item>
+                    <Nav.Link onClick={handleShowRewards} className="text-center text-white">
+                        <div><i className="bi bi-gift"></i></div>
+                        <small>Rewards</small>
+                    </Nav.Link>
+                </Nav.Item>
+
+                <Nav.Item>
+                    <Nav.Link onClick={() => navigate("/tenant")} className="text-center text-white">
+                        <div><i className="bi bi-gear-fill"></i></div>
+                        <small>Settings</small>
+                    </Nav.Link>
+                </Nav.Item>
+            </Navbar>
+
+            <Rewards show={showRewards} handleClose={handleCloseRewards} />
+            <Report show={showReport} handleClose={handleCloseReport}/>
+        </>
+    );
+}
+
+export default Tenant;
