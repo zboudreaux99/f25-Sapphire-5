@@ -3,6 +3,29 @@
 -- This script will be executed when the database is first created.
 -- ===============================================
 
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+CREATE EXTENSION IF NOT EXISTS intarray;
+
+-- This function is IMMUTABLE, which is required for it to be used in an index or EXCLUDE constraint.
+-- It converts a start and end time into a timestamp range on a fixed, arbitrary date.
+CREATE OR REPLACE FUNCTION time_to_tstzrange(start_time TIME, end_time TIME)
+RETURNS TSTZRANGE AS $$
+DECLARE
+    base_date DATE := '2000-01-01';
+    start_ts TIMESTAMPTZ;
+    end_ts TIMESTAMPTZ;
+BEGIN
+    start_ts := base_date + start_time;
+    end_ts := base_date + end_time;
+    
+    IF end_time <= start_time THEN
+        end_ts := end_ts + INTERVAL '1 day';
+    END IF;
+
+    RETURN TSTZRANGE(start_ts, end_ts, '()');
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
 CREATE TABLE Property (
     PropertyId SERIAL PRIMARY KEY,
     Name VARCHAR(255) NOT NULL,
@@ -68,6 +91,12 @@ CREATE TABLE SensorReading (
     FOREIGN KEY (SensorId) REFERENCES Sensor(SensorId) ON DELETE CASCADE
 );
 
+CREATE TABLE SensorHeartbeat (
+    SensorId INT PRIMARY KEY, 
+    LastCheckInTimestamp TIMESTAMPTZ NOT NULL,
+    ConnectivityStatus VARCHAR(20) NOT NULL,
+    FOREIGN KEY (SensorId) REFERENCES Sensor(SensorId) ON DELETE CASCADE
+);
 
 CREATE TABLE Tenant (
     TenantId SERIAL PRIMARY KEY,
@@ -82,8 +111,10 @@ CREATE TABLE Tenant (
 CREATE TABLE Reward (
     RewardId SERIAL PRIMARY KEY,
     Name VARCHAR(255) NOT NULL,
-    Description TEXT
-);
+    PropertyId INT NOT NULL,
+    Description TEXT,
+    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId) ON DELETE CASCADE
+); 
 
 CREATE TABLE UnitRewards (
     UnitId INT NOT NULL,
@@ -116,6 +147,5 @@ CREATE TABLE NoiseRule (
     -- Array of integers for days of the week, following ISO 8601 standard (1=Monday, 7=Sunday)
     DaysOfWeek INT[] NOT NULL,
     FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId) ON DELETE CASCADE,
-    CONSTRAINT no_overlapping_rules EXCLUDE (PropertyId WITH =, DaysOfWeek WITH &&, TSTZRANGE(StartTime::time, EndTime::time, '()') WITH &&)
+    CONSTRAINT no_overlapping_rules EXCLUDE USING GIST (PropertyId WITH =, DaysOfWeek WITH &&, time_to_tstzrange(StartTime, EndTime) WITH &&)
 );
-
