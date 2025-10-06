@@ -85,9 +85,23 @@ SELECT
 FROM
     generate_series(1, 10000);
 
+INSERT INTO SensorHeartbeat (SensorId, LastCheckInTimestamp, ConnectivityStatus)
+SELECT
+    s.SensorId,
+    NOW(),
+    'OK'
+FROM Sensor s;
 
 INSERT INTO Reward (Name, Description, PropertyId) VALUES
 ('Quiet Neighbor Discount', '10% off next month''s rent for maintaining low noise levels.', 1);
 
 INSERT INTO UnitRewards (UnitId, RewardId) VALUES
 (1, 1);
+
+INSERT INTO Complaint (InitiatingTenantId, ComplainedAboutUnitId, Description, Status) VALUES
+(2, 1, 'Loud music playing from Apt 101 after 11 PM. This has happened multiple times.', 'open'),
+(3, 4, 'Constant stomping and banging noises from Unit B. It sounds like they are moving furniture every day.', 'in_progress');
+
+INSERT INTO NoiseRule (PropertyId, Description, ThresholdDb, StartTime, EndTime, DaysOfWeek) VALUES
+(1, 'Weekday Quiet Hours', 75, '22:00:00', '07:00:00', ARRAY[1,2,3,4,5]),
+(2, 'General Noise Ordinance', 85, '09:00:00', '23:00:00', ARRAY[1,2,3,4,5,6,7]);

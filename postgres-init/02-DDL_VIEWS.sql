@@ -99,7 +99,7 @@ SELECT
     NOW() - h.LastCheckInTimestamp AS TimeSinceLastCheckIn
 FROM
     Sensor s
-JOIN SensorHeartbeat h ON s.SensorId = h.SensorId
+LEFT JOIN SensorHeartbeat h ON s.SensorId = h.SensorId
 JOIN Unit u ON s.UnitId = u.UnitId
 JOIN Property p ON u.PropertyId = p.PropertyId;
 
@@ -119,7 +119,47 @@ LEFT JOIN Unit u ON ur.UnitId = u.UnitId
 GROUP BY
     r.RewardId, r.Name, r.Description, p.PropertyId, p.Name;
 
+CREATE VIEW V_PropertyManagers AS
+SELECT
+    p.PropertyId,
+    p.Name AS PropertyName,
+    m.ManagerId,
+    m.Name AS ManagerName
+FROM
+    Property p
+JOIN 
+    PropertyManagers pm ON p.PropertyId = pm.PropertyId
+JOIN
+    Manager m ON pm.ManagerId = m.ManagerId;
 
+CREATE VIEW V_ComplaintDetails AS
+SELECT
+    c.ComplaintId,
+    c.ComplaintTimestamp,
+    c.Description,
+    c.Status,
+    ti.TenantId AS InitiatingTenantId,
+    ti.Name AS InitiatingTenantName,
+    cau.UnitId AS ComplainedAboutUnitId,
+    cau.Name AS ComplainedAboutUnitName,
+    p.PropertyId,
+    p.Name AS PropertyName
+FROM
+    Complaint c
+LEFT JOIN Tenant ti ON c.InitiatingTenantId = ti.TenantId
+LEFT JOIN Unit cau ON c.ComplainedAboutUnitId = cau.UnitId
+LEFT JOIN Property p ON cau.PropertyId = p.PropertyId;
 
-
-
+CREATE VIEW V_NoiseRuleDetails AS
+SELECT
+    nr.NoiseRuleId,
+    nr.PropertyId,
+    p.Name AS PropertyName,
+    nr.Description,
+    nr.ThresholdDb,
+    nr.StartTime,
+    nr.EndTime,
+    nr.DaysOfWeek
+FROM
+    NoiseRule nr
+JOIN Property p ON nr.PropertyId = p.PropertyId;

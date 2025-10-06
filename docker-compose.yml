@@ -34,6 +34,16 @@ services:
       - "3000:80"
     depends_on:
       - server
+      
+  simulator:
+    build: ./simulator 
+    environment:
+      API_HOST: server 
+      API_PORT: 8080
+    profiles:
+      - simulate
+    depends_on:
+      - server
 
 volumes:
   db_data:
