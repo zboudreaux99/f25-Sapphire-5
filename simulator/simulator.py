@@ -12,7 +12,7 @@ BASE_API_URL = f"http://{API_HOST}:{API_PORT}/api/sensor"
 def get_sensor_ids():
     try:
         response = requests.get(f"{BASE_API_URL}?fields=SensorId")
-        response.raise_for_status()
+        response.raise_for_status() 
         return response.json()
     except requests.exceptions.RequestException as e:
         print(f"Error fetching sensor IDs: {e}")
@@ -66,15 +66,19 @@ def run_simulation():
     last_heartbeat_time = time.time()
 
     while True:
+    
         for sensor_id in SENSOR_IDS:
-            send_reading(sensor_id)
+            send_reading(sensor_id['SensorId'])
 
         # Send a heartbeat for all sensors every 60 seconds
         if time.time() - last_heartbeat_time >= 60:
             print("\n--- Sending all heartbeats ---")
             for sensor_id in SENSOR_IDS:
-                send_heartbeat(sensor_id)
+                send_heartbeat(sensor_id['SensorId'])
             last_heartbeat_time = time.time()
             print("-----------------------------\n")
 
         time.sleep(10) # Wait 10 seconds before the next reading cycle
+
+if __name__ == "__main__":
+    run_simulation()
