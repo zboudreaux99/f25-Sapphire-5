@@ -163,3 +163,22 @@ SELECT
 FROM
     NoiseRule nr
 JOIN Property p ON nr.PropertyId = p.PropertyId;
+
+CREATE OR REPLACE VIEW V_UnitRewardsDetails AS
+SELECT
+    ur.UnitRewardId,
+    ur.UnitId,
+    u.Name AS UnitName,
+    ur.RewardId,
+    r.Name AS RewardName,
+    r.Description AS RewardDescription,
+    ur.DateGranted,
+    ur.DateRedeemed,
+    (ur.DateRedeemed IS NULL) AS IsAvailable,
+    p.PropertyId,
+    p.Name AS PropertyName
+FROM
+    UnitRewards ur
+JOIN Unit u ON ur.UnitId = u.UnitId
+JOIN Reward r ON ur.RewardId = r.RewardId
+JOIN Property p ON u.PropertyId = p.PropertyId;

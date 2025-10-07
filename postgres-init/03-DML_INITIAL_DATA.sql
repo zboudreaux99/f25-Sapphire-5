@@ -93,10 +93,13 @@ SELECT
 FROM Sensor s;
 
 INSERT INTO Reward (Name, Description, PropertyId) VALUES
-('Quiet Neighbor Discount', '10% off next month''s rent for maintaining low noise levels.', 1);
+('Quiet Neighbor Discount', '10% off one month''s rent for maintaining low noise levels.', 1),
+('Karen Reward', '20% of one month''s rent as an apology for Karen''s last episode .', 1);
 
-INSERT INTO UnitRewards (UnitId, RewardId) VALUES
-(1, 1);
+INSERT INTO UnitRewards (PropertyId, UnitId, RewardId, DateGranted, DateRedeemed) VALUES
+(1, 1, 1, NOW() - INTERVAL '10 days', NULL),
+(1, 1, 1, NOW() - INTERVAL '40 days', NOW() - INTERVAL '30 days'),
+(1, 1, 2, NOW() - INTERVAL '5 days', NULL);
 
 INSERT INTO Complaint (InitiatingTenantId, ComplainedAboutUnitId, Description, Status) VALUES
 (2, 1, 'Loud music playing from Apt 101 after 11 PM. This has happened multiple times.', 'open'),

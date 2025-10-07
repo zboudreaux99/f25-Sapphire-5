@@ -72,7 +72,8 @@ CREATE TABLE Unit (
     Name VARCHAR(255) NOT NULL,
     PropertyId INT NOT NULL,
     FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId) ON DELETE CASCADE,
-    UNIQUE (PropertyId, Name)
+    UNIQUE (PropertyId, Name),
+    UNIQUE (PropertyId, UnitId)
 );
 
 CREATE TABLE Sensor (
@@ -112,16 +113,24 @@ CREATE TABLE Reward (
     RewardId SERIAL PRIMARY KEY,
     Name VARCHAR(255) NOT NULL,
     PropertyId INT NOT NULL,
+    IsActive BOOLEAN NOT NULL DEFAULT TRUE,
     Description TEXT,
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId) ON DELETE CASCADE
+    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId) ON DELETE CASCADE,
+    UNIQUE (PropertyId, Name),
+    UNIQUE (PropertyId, RewardId)
 ); 
 
 CREATE TABLE UnitRewards (
-    UnitId INT NOT NULL,
+    UnitRewardId SERIAL PRIMARY KEY,
+    PropertyId INT NOT NULL,
     RewardId INT NOT NULL,
-    PRIMARY KEY (UnitId, RewardId),
-    FOREIGN KEY (UnitId) REFERENCES Unit(UnitId) ON DELETE CASCADE,
-    FOREIGN KEY (RewardId) REFERENCES Reward(RewardId) ON DELETE CASCADE
+    UnitId INT NOT NULL,
+    DateGranted TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    DateRedeemed TIMESTAMPTZ,
+    FOREIGN KEY (RewardId) REFERENCES Reward(RewardId) ON DELETE RESTRICT,
+    FOREIGN KEY (PropertyId, UnitId) REFERENCES Unit(PropertyId, UnitId) ON DELETE CASCADE,
+    FOREIGN KEY (PropertyId, RewardId) REFERENCES Reward(PropertyId, RewardId) ON DELETE RESTRICT,
+    CONSTRAINT chk_redeemed_after_granted CHECK (DateRedeemed IS NULL OR DateRedeemed >= DateGranted)
 );
 
 CREATE TYPE complaint_status AS ENUM ('open', 'in_progress', 'resolved');

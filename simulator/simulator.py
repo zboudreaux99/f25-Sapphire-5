@@ -1,6 +1,7 @@
 import requests
 import random
 import time
+import datetime
 import numpy as np
 import os
 
@@ -35,7 +36,8 @@ def send_reading(sensor_id):
     db_reading = generate_realistic_db()
     reading_payload = {
         "sensorId": sensor_id,
-        "db": db_reading
+        "db": db_reading,
+        "timestamp": datetime.datetime.now().isoformat()
     }
     try:
         response = requests.post(f"{BASE_API_URL}/reading", json=reading_payload)
@@ -47,7 +49,8 @@ def send_heartbeat(sensor_id):
     status = generate_heartbeat_status()
     heartbeat_payload = {
         "sensorId": sensor_id,
-        "connectivityStatus": status
+        "connectivityStatus": status,
+        "timestamp": datetime.datetime.now().isoformat()
     }
     try:
         response = requests.post(f"{BASE_API_URL}/heartbeat", json=heartbeat_payload)
