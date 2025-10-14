@@ -3,119 +3,158 @@
 -- This script will be executed when the database is first created.
 -- ===============================================
 
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+CREATE EXTENSION IF NOT EXISTS intarray;
+
+-- This function is IMMUTABLE, which is required for it to be used in an index or EXCLUDE constraint.
+-- It converts a start and end time into a timestamp range on a fixed, arbitrary date.
+CREATE OR REPLACE FUNCTION time_to_tstzrange(start_time TIME, end_time TIME)
+RETURNS TSTZRANGE AS $$
+DECLARE
+    base_date DATE := '2000-01-01';
+    start_ts TIMESTAMPTZ;
+    end_ts TIMESTAMPTZ;
+BEGIN
+    start_ts := base_date + start_time;
+    end_ts := base_date + end_time;
+    
+    IF end_time <= start_time THEN
+        end_ts := end_ts + INTERVAL '1 day';
+    END IF;
+
+    RETURN TSTZRANGE(start_ts, end_ts, '()');
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
 CREATE TABLE Property (
-    PropertyId SERIAL PRIMARY KEY,
-    Name VARCHAR(255) NOT NULL,
-    Address001 VARCHAR(255) NOT NULL,
-    Address002 VARCHAR(255),
-    City VARCHAR(100),
-    State VARCHAR(50),
-    Zipcode VARCHAR(20)
+    property_id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    address001 VARCHAR(255) NOT NULL,
+    address002 VARCHAR(255),
+    city VARCHAR(100),
+    state VARCHAR(50),
+    zipcode VARCHAR(20)
 );
 
 CREATE TYPE user_role AS ENUM ('admin', 'manager', 'tenant');
 
 CREATE TABLE Users (
-    UserId SERIAL PRIMARY KEY,
-    Email VARCHAR(255) NOT NULL UNIQUE,
-    PasswordHash VARCHAR(255) NOT NULL,
-    Role user_role NOT NULL,
-    CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    LastLogin TIMESTAMP WITH TIME ZONE
+    user_id SERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role user_role NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP WITH TIME ZONE
 );
 
 CREATE TABLE Manager (
-    ManagerId SERIAL PRIMARY KEY,
-    Name VARCHAR(255) NOT NULL,
-    Address VARCHAR(255),
-    City VARCHAR(100),
-    State VARCHAR(50),
-    Zipcode VARCHAR(20),
-    UserId INT UNIQUE,
-    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE SET NULL
+    manager_id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    address VARCHAR(255),
+    city VARCHAR(100),
+    state VARCHAR(50),
+    zipcode VARCHAR(20),
+    user_id INT UNIQUE,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
 );
 
 
 CREATE TABLE PropertyManagers (
-    PropertyId INT NOT NULL,
-    ManagerId INT NOT NULL,
-    PRIMARY KEY (PropertyId, ManagerId),
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId) ON DELETE CASCADE,
-    FOREIGN KEY (ManagerId) REFERENCES Manager(ManagerId) ON DELETE CASCADE
+    property_id INT NOT NULL,
+    manager_id INT NOT NULL,
+    PRIMARY KEY (property_id, manager_id),
+    FOREIGN KEY (property_id) REFERENCES Property(property_id) ON DELETE CASCADE,
+    FOREIGN KEY (manager_id) REFERENCES Manager(manager_id) ON DELETE CASCADE
 );
 
 CREATE TABLE Unit (
-    UnitId SERIAL PRIMARY KEY,
-    Name VARCHAR(255) NOT NULL,
-    PropertyId INT NOT NULL,
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId) ON DELETE CASCADE,
-    UNIQUE (PropertyId, Name)
+    unit_id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    property_id INT NOT NULL,
+    FOREIGN KEY (property_id) REFERENCES Property(property_id) ON DELETE CASCADE,
+    UNIQUE (property_id, name),
+    UNIQUE (property_id, unit_id)
 );
 
 CREATE TABLE Sensor (
-    SensorId SERIAL PRIMARY KEY,
-    Location VARCHAR(255),
-    UnitId INT NOT NULL,
-    FOREIGN KEY (UnitId) REFERENCES Unit(UnitId) ON DELETE CASCADE,
-    UNIQUE (UnitId, Location)
+    sensor_id SERIAL PRIMARY KEY,
+    location VARCHAR(255),
+    unit_id INT NOT NULL,
+    FOREIGN KEY (unit_id) REFERENCES Unit(unit_id) ON DELETE CASCADE,
+    UNIQUE (unit_id, location)
 );
 
 CREATE TABLE SensorReading (
-    ReadingId SERIAL PRIMARY KEY,
-    dB INTEGER NOT NULL,
-    ReadingTimestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    SensorId INT NOT NULL,
-    FOREIGN KEY (SensorId) REFERENCES Sensor(SensorId) ON DELETE CASCADE
+    reading_id SERIAL PRIMARY KEY,
+    db INTEGER NOT NULL,
+    reading_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    sensor_id INT NOT NULL,
+    FOREIGN KEY (sensor_id) REFERENCES Sensor(sensor_id) ON DELETE CASCADE
 );
 
+CREATE TABLE SensorHeartbeat (
+    sensor_id INT PRIMARY KEY, 
+    last_check_in_timestamp TIMESTAMPTZ NOT NULL,
+    connectivity_status VARCHAR(20) NOT NULL,
+    FOREIGN KEY (sensor_id) REFERENCES Sensor(sensor_id) ON DELETE CASCADE
+);
 
 CREATE TABLE Tenant (
-    TenantId SERIAL PRIMARY KEY,
-    Name VARCHAR(255) NOT NULL,
-    UnitId INT UNIQUE,
-    FOREIGN KEY (UnitId) REFERENCES Unit(UnitId) ON DELETE SET NULL,
-    UserId INT UNIQUE,
-    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE SET NULL
+    tenant_id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    unit_id INT UNIQUE,
+    FOREIGN KEY (unit_id) REFERENCES Unit(unit_id) ON DELETE SET NULL,
+    user_id INT UNIQUE,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
 );
 
 
 CREATE TABLE Reward (
-    RewardId SERIAL PRIMARY KEY,
-    Name VARCHAR(255) NOT NULL,
-    Description TEXT
-);
+    reward_id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    property_id INT NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    description TEXT,
+    FOREIGN KEY (property_id) REFERENCES Property(property_id) ON DELETE CASCADE,
+    UNIQUE (property_id, name),
+    UNIQUE (property_id, reward_id)
+); 
 
 CREATE TABLE UnitRewards (
-    UnitId INT NOT NULL,
-    RewardId INT NOT NULL,
-    PRIMARY KEY (UnitId, RewardId),
-    FOREIGN KEY (UnitId) REFERENCES Unit(UnitId) ON DELETE CASCADE,
-    FOREIGN KEY (RewardId) REFERENCES Reward(RewardId) ON DELETE CASCADE
+    unit_reward_id SERIAL PRIMARY KEY,
+    property_id INT NOT NULL,
+    reward_id INT NOT NULL,
+    unit_id INT NOT NULL,
+    date_granted TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date_redeemed TIMESTAMPTZ,
+    FOREIGN KEY (reward_id) REFERENCES Reward(reward_id) ON DELETE RESTRICT,
+    FOREIGN KEY (property_id, unit_id) REFERENCES Unit(property_id, unit_id) ON DELETE CASCADE,
+    FOREIGN KEY (property_id, reward_id) REFERENCES Reward(property_id, reward_id) ON DELETE RESTRICT,
+    CONSTRAINT chk_redeemed_after_granted CHECK (date_redeemed IS NULL OR date_redeemed >= date_granted)
 );
 
 CREATE TYPE complaint_status AS ENUM ('open', 'in_progress', 'resolved');
 
 CREATE TABLE Complaint (
-    ComplaintId SERIAL PRIMARY KEY,
-    InitiatingTenantId INT NOT NULL,
-    ComplainedAboutUnitId INT, 
-    ComplaintTimestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    Description TEXT,
-    Status complaint_status NOT NULL DEFAULT 'open',
-    FOREIGN KEY (InitiatingTenantId) REFERENCES Tenant(TenantId) ON DELETE CASCADE,
-    FOREIGN KEY (ComplainedAboutUnitId) REFERENCES Unit(UnitId) ON DELETE CASCADE
+    complaint_id SERIAL PRIMARY KEY,
+    initiating_tenant_id INT NOT NULL,
+    complained_about_unit_id INT, 
+    complaint_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    description TEXT,
+    status complaint_status NOT NULL DEFAULT 'open',
+    FOREIGN KEY (initiating_tenant_id) REFERENCES Tenant(tenant_id) ON DELETE CASCADE,
+    FOREIGN KEY (complained_about_unit_id) REFERENCES Unit(unit_id) ON DELETE SET NULL
 );
 
 CREATE TABLE NoiseRule (
-    NoiseRuleId SERIAL PRIMARY KEY,
-    PropertyId INT NOT NULL,
-    Description VARCHAR(255),
-    ThresholdDb INT NOT NULL,
-    StartTime TIME NOT NULL,
-    EndTime TIME NOT NULL,
+    noise_rule_id SERIAL PRIMARY KEY,
+    property_id INT NOT NULL,
+    description VARCHAR(255),
+    threshold_db INT NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
     -- Array of integers for days of the week, following ISO 8601 standard (1=Monday, 7=Sunday)
-    DaysOfWeek INT[] NOT NULL,
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId) ON DELETE CASCADE,
-    CONSTRAINT no_overlapping_rules EXCLUDE (PropertyId WITH =, DaysOfWeek WITH &&, TSTZRANGE(StartTime::time, EndTime::time, '()') WITH &&)
+    days_of_week INT[] NOT NULL,
+    FOREIGN KEY (property_id) REFERENCES Property(property_id) ON DELETE CASCADE,
+    CONSTRAINT no_overlapping_rules EXCLUDE USING GIST (property_id WITH =, days_of_week WITH &&, time_to_tstzrange(start_time, end_time) WITH &&)
 );
-

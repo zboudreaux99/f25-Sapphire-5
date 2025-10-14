@@ -20,4 +20,8 @@ gradle-app.setting
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+#vscode project files
+.vscode
 f25-Sapphire-5.code-workspace
+database-client-config.json
