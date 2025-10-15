@@ -10,8 +10,9 @@ import Tenant from './Tenant';
 import PropertyManager from './PropertyManager';
 
 
+// Example API call to retrieve sensor data.
 const apiCall = () => {
-  axios.get('http://localhost:8080').then((data) => {
+  axios.get('http://localhost:8080/api/sensor/get-sensor-data?sensor_id=1&start_time=2025-10-01T00:00:00Z&end_time=2025-12-31T12:00:00Z').then((data) => {
     console.log(data)
   })
 }

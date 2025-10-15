@@ -1,0 +1,86 @@
+const express = require('express');
+const pool = require('../db');
+const router = express.Router();
+
+
+//Routes for the simulator
+router.post('/reading', async (req, res) => {
+    try {
+        const data = req.body;
+        const {sensorId, db, timestamp} = data;
+        const result = await pool.query(
+            `INSERT INTO SensorReading (sensor_id, db, reading_timestamp) VALUES ($1, $2, $3) RETURNING *`,
+            [sensorId, db, timestamp]
+        );
+        const reading = result.rows[0]
+        res.status(201).json({
+            message: 'Reading logged to database.',
+            sensor_id: reading.sensor_id,
+            db: reading.db,
+            timestamp: reading.reading_timestamp
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({error: 'Database query failed.'});
+    }  
+
+});
+
+router.post('/heartbeat', async (req, res) => {
+    try {
+        const data = req.body;
+        const {sensorId, connectivityStatus, timestamp} = data;
+        const result = await pool.query(
+            `INSERT INTO SensorHeartbeat (sensor_id, last_check_in_timestamp, connectivity_status) VALUES ($1, $2, $3)
+             ON CONFLICT (sensor_id) 
+             DO UPDATE SET 
+             last_check_in_timestamp = EXCLUDED.last_check_in_timestamp, 
+             connectivity_status = EXCLUDED.connectivity_status
+             RETURNING *`,
+            [sensorId, timestamp, connectivityStatus]
+        );
+        const heartbeat = result.rows[0]
+        res.status(201).json({
+            message: 'Heartbeat updated.',
+            connectivity_status: heartbeat.connectivity_status,
+            sensor_id: heartbeat.sensor_id,
+            last_check_in_timestamp: heartbeat.last_check_in_timestamp
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({error: 'Database query failed.'});
+    }   
+});
+
+router.get('/get-sensors', async (req, res) => {
+    try {
+        const result = await pool.query(`SELECT sensor_id FROM Sensor`);
+        const sensors = result.rows;
+        const sensorIds = sensors.map(sensor => sensor.sensor_id);
+        res.json(sensorIds);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({error: 'Database query failed.'});
+    }
+});
+
+//Routes for front end
+router.get('/get-sensor-data', async (req, res) => {
+    console.log("Fetching sensor data.")
+    try {
+        const {sensor_id, start_time, end_time} = req.query;
+        if (!sensor_id || !start_time || !end_time) {
+            return res.status(400).json({ error: 'Missing required parameters' });
+        }
+        const result = await pool.query(`SELECT * FROM SensorReading WHERE sensor_id = $1 AND reading_timestamp BETWEEN $2 AND $3 ORDER BY reading_timestamp`, 
+            [sensor_id, start_time, end_time]);
+        data = result.rows
+        res.json(data);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({error: 'Database query failed.'})
+    }
+
+})
+
+module.exports = router;
