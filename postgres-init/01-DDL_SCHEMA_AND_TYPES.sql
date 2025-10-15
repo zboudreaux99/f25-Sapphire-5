@@ -3,6 +3,29 @@
 -- This script will be executed when the database is first created.
 -- ===============================================
 
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+CREATE EXTENSION IF NOT EXISTS intarray;
+
+-- This function is IMMUTABLE, which is required for it to be used in an index or EXCLUDE constraint.
+-- It converts a start and end time into a timestamp range on a fixed, arbitrary date.
+CREATE OR REPLACE FUNCTION time_to_tstzrange(start_time TIME, end_time TIME)
+RETURNS TSTZRANGE AS $$
+DECLARE
+    base_date DATE := '2000-01-01';
+    start_ts TIMESTAMPTZ;
+    end_ts TIMESTAMPTZ;
+BEGIN
+    start_ts := base_date + start_time;
+    end_ts := base_date + end_time;
+    
+    IF end_time <= start_time THEN
+        end_ts := end_ts + INTERVAL '1 day';
+    END IF;
+
+    RETURN TSTZRANGE(start_ts, end_ts, '()');
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
 CREATE TABLE Property (
     property_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -19,7 +42,7 @@ CREATE TABLE Users (
     user_id SERIAL PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    Role user_role NOT NULL,
+    role user_role NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     last_login TIMESTAMP WITH TIME ZONE
 );
@@ -49,7 +72,8 @@ CREATE TABLE Unit (
     name VARCHAR(255) NOT NULL,
     property_id INT NOT NULL,
     FOREIGN KEY (property_id) REFERENCES Property(property_id) ON DELETE CASCADE,
-    UNIQUE (property_id, Name)
+    UNIQUE (property_id, name),
+    UNIQUE (property_id, unit_id)
 );
 
 CREATE TABLE Sensor (
@@ -57,7 +81,7 @@ CREATE TABLE Sensor (
     location VARCHAR(255),
     unit_id INT NOT NULL,
     FOREIGN KEY (unit_id) REFERENCES Unit(unit_id) ON DELETE CASCADE,
-    UNIQUE (unit_id, Location)
+    UNIQUE (unit_id, location)
 );
 
 CREATE TABLE SensorReading (
@@ -68,6 +92,12 @@ CREATE TABLE SensorReading (
     FOREIGN KEY (sensor_id) REFERENCES Sensor(sensor_id) ON DELETE CASCADE
 );
 
+CREATE TABLE SensorHeartbeat (
+    sensor_id INT PRIMARY KEY, 
+    last_check_in_timestamp TIMESTAMPTZ NOT NULL,
+    connectivity_status VARCHAR(20) NOT NULL,
+    FOREIGN KEY (sensor_id) REFERENCES Sensor(sensor_id) ON DELETE CASCADE
+);
 
 CREATE TABLE Tenant (
     tenant_id SERIAL PRIMARY KEY,
@@ -82,15 +112,25 @@ CREATE TABLE Tenant (
 CREATE TABLE Reward (
     reward_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    description TEXT
-);
+    property_id INT NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    description TEXT,
+    FOREIGN KEY (property_id) REFERENCES Property(property_id) ON DELETE CASCADE,
+    UNIQUE (property_id, name),
+    UNIQUE (property_id, reward_id)
+); 
 
 CREATE TABLE UnitRewards (
-    unit_id INT NOT NULL,
+    unit_reward_id SERIAL PRIMARY KEY,
+    property_id INT NOT NULL,
     reward_id INT NOT NULL,
-    PRIMARY KEY (unit_id, reward_id),
-    FOREIGN KEY (unit_id) REFERENCES Unit(unit_id) ON DELETE CASCADE,
-    FOREIGN KEY (reward_id) REFERENCES Reward(reward_id) ON DELETE CASCADE
+    unit_id INT NOT NULL,
+    date_granted TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date_redeemed TIMESTAMPTZ,
+    FOREIGN KEY (reward_id) REFERENCES Reward(reward_id) ON DELETE RESTRICT,
+    FOREIGN KEY (property_id, unit_id) REFERENCES Unit(property_id, unit_id) ON DELETE CASCADE,
+    FOREIGN KEY (property_id, reward_id) REFERENCES Reward(property_id, reward_id) ON DELETE RESTRICT,
+    CONSTRAINT chk_redeemed_after_granted CHECK (date_redeemed IS NULL OR date_redeemed >= date_granted)
 );
 
 CREATE TYPE complaint_status AS ENUM ('open', 'in_progress', 'resolved');
@@ -99,11 +139,11 @@ CREATE TABLE Complaint (
     complaint_id SERIAL PRIMARY KEY,
     initiating_tenant_id INT NOT NULL,
     complained_about_unit_id INT, 
-    ComplaintTimestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    Description TEXT,
-    Status complaint_status NOT NULL DEFAULT 'open',
+    complaint_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    description TEXT,
+    status complaint_status NOT NULL DEFAULT 'open',
     FOREIGN KEY (initiating_tenant_id) REFERENCES Tenant(tenant_id) ON DELETE CASCADE,
-    FOREIGN KEY (complained_about_unit_id) REFERENCES Unit(unit_id) ON DELETE CASCADE
+    FOREIGN KEY (complained_about_unit_id) REFERENCES Unit(unit_id) ON DELETE SET NULL
 );
 
 CREATE TABLE NoiseRule (
@@ -111,11 +151,10 @@ CREATE TABLE NoiseRule (
     property_id INT NOT NULL,
     description VARCHAR(255),
     threshold_db INT NOT NULL,
-    start_time TIME WITH TIME ZONE NOT NULL,
-    end_time TIME WITH TIME ZONE NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
     -- Array of integers for days of the week, following ISO 8601 standard (1=Monday, 7=Sunday)
     days_of_week INT[] NOT NULL,
     FOREIGN KEY (property_id) REFERENCES Property(property_id) ON DELETE CASCADE,
-    CONSTRAINT no_overlapping_rules EXCLUDE (property_id WITH =, days_of_week WITH &&, TSTZRANGE(start_time::time, end_time::time, '()') WITH &&)
+    CONSTRAINT no_overlapping_rules EXCLUDE USING GIST (property_id WITH =, days_of_week WITH &&, time_to_tstzrange(start_time, end_time) WITH &&)
 );
-
