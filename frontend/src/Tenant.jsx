@@ -24,6 +24,11 @@ function Tenant() {
     const handleShowReport = () => setShowReport(true);
     const handleCloseReport = () => setShowReport(false);
 
+    const handleSubmitReport = (data) => {
+        console.log("Report submitted:", data);
+        // TODO: Send this to the backend although this is a prototype
+    };
+
     return (
         <>
             <Container
@@ -144,7 +149,11 @@ function Tenant() {
             </Navbar>
 
             <Rewards show={showRewards} handleClose={handleCloseRewards} />
-            <Report show={showReport} handleClose={handleCloseReport}/>
+            <Report
+                show={showReport}
+                handleClose={handleCloseReport}
+                handleSubmitReport={handleSubmitReport}
+            />
         </>
     );
 }
