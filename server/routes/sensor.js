@@ -4,6 +4,7 @@ const router = express.Router();
 
 
 //Routes for the simulator
+//POST /api/sensor/reading
 router.post('/reading', async (req, res) => {
     try {
         const data = req.body;
@@ -26,6 +27,7 @@ router.post('/reading', async (req, res) => {
 
 });
 
+//POST /api/sensor/heartbeat
 router.post('/heartbeat', async (req, res) => {
     try {
         const data = req.body;
@@ -52,6 +54,7 @@ router.post('/heartbeat', async (req, res) => {
     }   
 });
 
+//GET /api/sensor/get-sensors
 router.get('/get-sensors', async (req, res) => {
     try {
         const result = await pool.query(`SELECT sensor_id FROM Sensor`);
@@ -65,8 +68,9 @@ router.get('/get-sensors', async (req, res) => {
 });
 
 //Routes for front end
+//GET /api/sensor/get-sensor-data
 router.get('/get-sensor-data', async (req, res) => {
-    console.log("Fetching sensor data.")
+    // console.log("Fetching sensor data.")
     try {
         const {sensor_id, start_time, end_time} = req.query;
         if (!sensor_id || !start_time || !end_time) {

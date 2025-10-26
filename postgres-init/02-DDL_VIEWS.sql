@@ -22,6 +22,7 @@ JOIN Property p ON u.property_id = p.property_id;
 CREATE VIEW V_TenantDetails AS
 SELECT
     t.tenant_id,
+    t.user_id,
     t.name AS tenant_name,
     u.unit_id,
     u.name AS unit_name,
