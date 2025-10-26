@@ -225,6 +225,25 @@ router.get('/unit/tenant', async (req, res) => {
     }
 });
 
+/** GET /api/property/unit/sensors
+ * Retrieves all sensors details for a given unit
+ * Required query parameters: unit_id
+ */
+router.get('/unit/sensors', async (req, res) => {
+    try {
+        const {unit_id} = req.query;
+        if(unit_id === undefined){
+            return res.status(400).json({
+                error: 'Missing required parameter: unit_id'
+            });
+        }
+        const result = await pool.query(`SELECT * FROM V_SensorDetails WHERE unit_id = $1`, [unit_id]);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({error: "Database query failed."})
+    }
+});
 module.exports = router;
 
 

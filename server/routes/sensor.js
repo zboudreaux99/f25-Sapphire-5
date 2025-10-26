@@ -85,6 +85,76 @@ router.get('/get-sensor-data', async (req, res) => {
         res.status(500).json({error: 'Database query failed.'})
     }
 
-})
+});
+
+/**
+ * POST /api/sensor
+ * Creates a new sensor
+ * Required fields: unit_id
+ */
+router.post('/', async (req, res) => {
+    try {
+        const data = req.body;
+        const {unit_id, location} = data;
+        if(unit_id === undefined){
+            return res.status(400).json({
+                error: 'Missing required property fields: unit_id'
+            });
+        }
+        const result = await pool.query(
+            `INSERT INTO Sensor (unit_id, location) VALUES ($1, $2) RETURNING *`,
+            [unit_id, location ?? null]
+        );
+        const sensor = result.rows[0]
+        res.status(201).json({
+            message: 'Sensor created.',
+            unit_id: sensor.unit_id,
+            sensor_id: sensor.sensor_id
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({error: "Database query failed."});
+    }  
+});
+
+/** GET /api/sensor
+ * Retrieves sensor details
+ * Required query parameters: unit_id
+ */
+router.get('/', async (req, res) => {
+    try {
+        const {sensor_id} = req.query;
+        if(sensor_id === undefined){
+            return res.status(400).json({
+                error: 'Missing required parameter: sensor_id'
+            });
+        }
+        const result = await pool.query(`SELECT * FROM V_SensorDetails WHERE sensor_id = $1`, [sensor_id]);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({error: "Database query failed."})
+    }
+});
+
+/** GET /api/sensor
+ * Retrieves sensor details
+ * Required query parameters: unit_id
+ */
+router.get('/', async (req, res) => {
+    try {
+        const {sensor_id} = req.query;
+        if(sensor_id === undefined){
+            return res.status(400).json({
+                error: 'Missing required parameter: sensor_id'
+            });
+        }
+        const result = await pool.query(`SELECT * FROM V_SensorDetails WHERE sensor_id = $1`, [sensor_id]);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({error: "Database query failed."})
+    }
+});
 
 module.exports = router;
