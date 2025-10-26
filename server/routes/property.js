@@ -3,7 +3,7 @@ const pool = require('../db');
 const router = express.Router();
 
 
-/** POST /api/property/create  
+/** POST /api/property  
  * Creates a new Property
  * Required fields: name, address001
  */
@@ -85,7 +85,7 @@ router.get('/managers', async (req, res) => {
 })
 
 
-/** POST /api/property/unit/create  
+/** POST /api/property/unit 
  * Creates or updates a Unit at the property_id provided
  * Required fields: name, property_id
  */
@@ -148,7 +148,7 @@ router.get('/unit', async (req, res) => {
 
 /** POST /api/property/unit/tenant
  * Adds a tenant to a unit
- * Required fields: unit_id, user_id
+ * Required fields: unit_id, user_id, name
  */
 router.post('/unit/tenant', async (req, res) => {
     try {
@@ -176,9 +176,9 @@ router.post('/unit/tenant', async (req, res) => {
     }  
 });
 
-/** POST /api/property/unit/tenant
+/** POST /api/property/unit/tenant/remove
  * Removes a tenant from a unit
- * Required fields: unit_id, user_id
+ * Required fields: tenant_id
  */
 router.post('/unit/tenant/remove', async (req, res) => {
     try {
