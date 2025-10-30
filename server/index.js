@@ -4,12 +4,14 @@ const authRoutes = require('./routes/auth');
 const authMiddleware = require('./middleware/authMiddleware');
 const roleMiddleware = require('./middleware/roleMiddleware');
 const sensorRoutes = require('./routes/sensor');
+const propertyRoutes = require('./routes/property');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/api/auth/', authRoutes);
 app.use('/api/sensor/', sensorRoutes);
+app.use('/api/property/', propertyRoutes);
 
 app.get('/', (req, res) => {
     console.log("Hello");    
