@@ -9,7 +9,7 @@ function Welcome() {
     }
 
     const handleLandlordClick = () => {
-        navigate('/property-manager');
+        navigate('/login');
     }
 
     return (
