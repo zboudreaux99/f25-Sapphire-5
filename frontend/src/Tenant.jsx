@@ -9,6 +9,9 @@ import MonthlyChart from "./MonthlyChart";
 function Tenant() {
     const navigate = useNavigate();
 
+    // Get email from localStorage or fallback to placeholder
+    const userEmail = localStorage.getItem('email') || 'Tenant';
+
     const [index, setIndex] = useState(0);
     const handleSelect = (selectedIndex) => setIndex(selectedIndex);
 
@@ -34,7 +37,7 @@ function Tenant() {
                 className="vh-100 d-flex flex-column justify-content-center pt-5 gradient-background"
             >
                 <Row className="w-100 justify-content-center">
-                    <h1 className="text-white mb-4">Welcome, May!</h1>
+                    <h1 className="text-white mb-4">Welcome, {userEmail}!</h1>
                 </Row>
 
                 <Row className="w-100 justify-content-center mb-4">
@@ -141,8 +144,6 @@ function Tenant() {
                     </Card>
                 </Row>
             </Container>
-
-
 
             <Navbar
                 fixed="bottom"

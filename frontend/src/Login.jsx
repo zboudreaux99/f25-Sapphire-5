@@ -16,7 +16,7 @@ function Login() {
         setLoading(true);
 
         try {
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch('http://localhost:8080/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -34,21 +34,15 @@ function Login() {
             localStorage.setItem('token', data.token);
             localStorage.setItem('role', data.user.role);
             localStorage.setItem('userId', data.user.id);
+            localStorage.setItem('email', data.user.email);
 
             // Redirect based on role
-            switch (data.user.role) {
-                case 'tenant':
-                    navigate('/tenant');
-                    break;
-                case 'manager':
-                    navigate('/property-manager');
-                    break;
-                case 'admin':
-                    navigate('/report');
-                    break;
-                default:
-                    navigate('/welcome');
-                    break;
+            if (data.user.role === 'tenant') {
+                navigate('/tenant');
+            } else if (data.user.role === 'manager') {
+                navigate('/property-manager');
+            } else {
+                navigate('/welcome');
             }
         } catch (err) {
             console.error('Login error:', err);
@@ -56,6 +50,7 @@ function Login() {
             setLoading(false);
         }
     };
+
 
     const handleBackClicked = () => {
         navigate('/welcome');
