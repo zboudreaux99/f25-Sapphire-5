@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 import PMTenants from "./PMTenants";
+import PMUnits from "./PMUnits";
 
 function PropertyManager() {
     const navigate = useNavigate();
@@ -15,6 +16,10 @@ function PropertyManager() {
     const [showTenants, setShowTenants] = useState(false);
     const handleShowTenants = () => setShowTenants(true);
     const handleCloseTenants = () => setShowTenants(false);
+
+    const [showUnits, setShowUnits] = useState(false);
+    const handleShowUnits = () => setShowUnits(true);
+    const handleCloseUnits = () => setShowUnits(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -108,15 +113,15 @@ function PropertyManager() {
 
                 <Nav.Item>
                     <Nav.Link onClick={handleShowTenants} className="text-center text-white">
-                        <div><i className="bi bi-house"></i></div>
+                        <div><i className="bi bi-person-lines-fill"></i></div>
                         <small>Tenants</small>
                     </Nav.Link>
                 </Nav.Item>
 
                 <Nav.Item>
-                    <Nav.Link className="text-center text-white">
-                        <div><i className="bi bi-person-lines-fill"></i></div>
-                        <small>Accounts</small>
+                    <Nav.Link onClick={handleShowUnits} className="text-center text-white">
+                        <div><i className="bi bi-house"></i></div>
+                        <small>Units</small>
                     </Nav.Link>
                 </Nav.Item>
 
@@ -129,6 +134,7 @@ function PropertyManager() {
             </Navbar>
 
             <PMTenants show={showTenants} handleClose={handleCloseTenants} />
+            <PMUnits show={showUnits} handleClose={handleCloseUnits} />
         </>
     );
 };
