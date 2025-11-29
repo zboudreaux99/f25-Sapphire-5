@@ -1,5 +1,8 @@
 const express = require('express');
 const cors = require('cors');
+const pool = require('./db'); // Import the database pool
+const { listenForNotifications } = require('./services/notification-listener');
+const { initializeTransporter } = require('./services/emailService');
 const authRoutes = require('./routes/auth');
 const authMiddleware = require('./middleware/authMiddleware');
 const roleMiddleware = require('./middleware/roleMiddleware');
@@ -31,6 +34,10 @@ app.get('/api/manager/dashboard', authMiddleware, roleMiddleware(['manager', 'ad
   res.json({ message: 'Manager dashboard' });
 });
 
-app.listen(8080, () => {
+app.listen(8080, async () => {
     console.log('server listening on port 8080');
-})
+    //intialize emailService
+    await initializeTransporter();
+    //intialize notification listener
+    listenForNotifications(pool);
+});

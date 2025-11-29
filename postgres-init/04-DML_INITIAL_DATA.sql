@@ -32,14 +32,14 @@ INSERT INTO PropertyManagers (property_id, manager_id) VALUES
 (2, 2); 
 
 INSERT INTO Unit (name, property_id) VALUES
-('Apt 101', 1),
-('Apt 102', 1),
-('Unit A', 2),
-('Unit B', 2);
+('101', 1),
+('102', 1),
+('104', 2),
+('105', 2);
 
 INSERT INTO Tenant (name, unit_id, user_id) VALUES
 ('Alice Wonder', 1, 3),
-('Karen Noseybody', 2, 5),
+('Karen Nosybody', 2, 5),
 ('Kyle Boomerbro', 3, 6),
 ('Warren Golfhiemer', 4, 7);
 
@@ -107,4 +107,4 @@ INSERT INTO Complaint (initiating_tenant_id, complained_about_unit_id, descripti
 
 INSERT INTO NoiseRule (property_id, description, threshold_db, start_time, end_time, days_of_week) VALUES
 (1, 'Weekday Quiet Hours', 75, '22:00:00', '07:00:00', ARRAY[1,2,3,4,5]),
-(2, 'General Noise Ordinance', 85, '09:00:00', '23:00:00', ARRAY[1,2,3,4,5,6,7]);
+(2, 'General Noise Ordinance', 85, '00:00:00', '23:59:59', ARRAY[1,2,3,4,5,6,7]);
