@@ -102,7 +102,7 @@ CREATE TABLE SensorHeartbeat (
 CREATE TABLE Tenant (
     tenant_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    unit_id INT UNIQUE,
+    unit_id INT,
     FOREIGN KEY (unit_id) REFERENCES Unit(unit_id) ON DELETE SET NULL,
     user_id INT UNIQUE,
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
@@ -158,3 +158,36 @@ CREATE TABLE NoiseRule (
     FOREIGN KEY (property_id) REFERENCES Property(property_id) ON DELETE CASCADE,
     CONSTRAINT no_overlapping_rules EXCLUDE USING GIST (property_id WITH =, days_of_week WITH &&, time_to_tstzrange(start_time, end_time) WITH &&)
 );
+
+CREATE TABLE NoiseViolation (
+    violation_id SERIAL PRIMARY KEY,
+    unit_id INT NOT NULL,
+    sensor_id INT NOT NULL,
+    reading_id INT NOT NULL,
+    noise_rule_id INT NOT NULL,
+    violation_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (unit_id) REFERENCES Unit(unit_id) ON DELETE CASCADE,
+    FOREIGN KEY (sensor_id) REFERENCES Sensor(sensor_id) ON DELETE CASCADE,
+    FOREIGN KEY (reading_id) REFERENCES SensorReading(reading_id) ON DELETE CASCADE,
+    FOREIGN KEY (noise_rule_id) REFERENCES NoiseRule(noise_rule_id) ON DELETE CASCADE
+);
+
+CREATE TYPE notification_type AS ENUM ('noise_violation', 'complaint', 'reward');
+CREATE TYPE notification_status AS ENUM ('unread', 'read');
+
+CREATE TABLE Notification (
+    notification_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    unit_id INT, 
+    property_id INT,
+    type notification_type NOT NULL,
+    reference_id INT,
+    message TEXT NOT NULL,
+    status notification_status NOT NULL DEFAULT 'unread',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (unit_id) REFERENCES Unit(unit_id) ON DELETE SET NULL,
+    FOREIGN KEY (property_id) REFERENCES Property(property_id) ON DELETE SET NULL
+);
+
+
