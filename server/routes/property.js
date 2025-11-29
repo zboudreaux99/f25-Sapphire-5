@@ -167,6 +167,32 @@ router.get('/unit', async (req, res) => {
     }
 });
 
+/** GET /api/property/unit/tenants
+ * Retrieves all tenants for a property
+ * Required query parameters: property_id
+ */
+router.get('/unit/tenants', async (req, res) => {
+    try {
+        const { property_id } = req.query;
+        if (!property_id) {
+            return res.status(400).json({
+                error: 'Missing required parameter: property_id'
+            });
+        }
+
+        const result = await pool.query(
+            `SELECT * FROM V_TenantDetails WHERE property_id = $1`,
+            [property_id]
+        );
+
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Database query failed." });
+    }
+});
+
+
 /** POST /api/property/unit/tenant
  * Adds a tenant to a unit
  * Required fields: unit_id, user_id, name

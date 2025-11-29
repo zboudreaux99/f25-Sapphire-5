@@ -14,40 +14,50 @@ function PropertyManager() {
     const [error, setError] = useState(null);
 
     const [showTenants, setShowTenants] = useState(false);
-    const handleShowTenants = () => setShowTenants(true);
-    const handleCloseTenants = () => setShowTenants(false);
-
     const [showUnits, setShowUnits] = useState(false);
-    const handleShowUnits = () => setShowUnits(true);
-    const handleCloseUnits = () => setShowUnits(false);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [managerRes, propertyRes] = await Promise.all([
-                    fetch("http://localhost:8080/api/property/managers?property_id=1"),
-                    fetch("http://localhost:8080/api/property?property_id=1")
-                ]);
+    const fetchData = async () => {
+        try {
+            setLoading(true);
 
-                if (!managerRes.ok || !propertyRes.ok)
-                    throw new Error("Failed to fetch data");
+            const [managerRes, propertyRes] = await Promise.all([
+                fetch("http://localhost:8080/api/property/managers?property_id=1"),
+                fetch("http://localhost:8080/api/property?property_id=1")
+            ]);
 
-                const [managerData, propertyData] = await Promise.all([
-                    managerRes.json(),
-                    propertyRes.json()
-                ]);
-
-                if (managerData.length > 0) setManagerData(managerData[0]);
-                if (propertyData.length > 0) setPropertyData(propertyData[0]);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
+            if (!managerRes.ok || !propertyRes.ok) {
+                throw new Error("Failed to fetch data");
             }
-        };
 
+            const [managerDataJson, propertyDataJson] = await Promise.all([
+                managerRes.json(),
+                propertyRes.json()
+            ]);
+
+            if (managerDataJson.length > 0) setManagerData(managerDataJson[0]);
+            if (propertyDataJson.length > 0) setPropertyData(propertyDataJson[0]);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch on page load
+    useEffect(() => {
         fetchData();
     }, []);
+
+    // Closing actions for modals
+    const handleCloseUnits = () => {
+        setShowUnits(false);
+        fetchData();   // Refresh data when Units modal closes
+    };
+
+    const handleCloseTenants = () => {
+        setShowTenants(false);
+        fetchData();   // Refresh data when Tenants modal closes
+    };
 
     if (loading) {
         return (
@@ -73,13 +83,17 @@ function PropertyManager() {
             >
                 <Row className="w-100 mb-2">
                     <Col>
-                        <h1 className="text-white">Welcome, {managerData?.manager_name}!</h1>
+                        <h1 className="text-white">
+                            Welcome, {managerData?.manager_name}!
+                        </h1>
                     </Col>
                 </Row>
 
                 <Row className="w-100 mb-4">
                     <Col>
-                        <h4 className="text-white">{propertyData?.property_name}</h4>
+                        <h4 className="text-white">
+                            {propertyData?.property_name}
+                        </h4>
                     </Col>
                 </Row>
 
@@ -87,7 +101,15 @@ function PropertyManager() {
                     <Col xs={12} md={6}>
                         <div className="p-4 liquid-glass text-white rounded">
                             <ul className="list-unstyled mb-0" style={{ lineHeight: "2" }}>
-                                <li><strong>Address:</strong> {propertyData?.address001} {propertyData?.address002 ? propertyData.address002 + " " : ""}{propertyData?.city}, {propertyData?.state} {propertyData?.zipcode}</li>
+                                <li>
+                                    <strong>Address:</strong>{" "}
+                                    {propertyData?.address001}{" "}
+                                    {propertyData?.address002
+                                        ? propertyData.address002 + " "
+                                        : ""}
+                                    {propertyData?.city}, {propertyData?.state}{" "}
+                                    {propertyData?.zipcode}
+                                </li>
                                 <li><strong>Units:</strong> {propertyData?.unit_count}</li>
                                 <li><strong>Tenants:</strong> {propertyData?.tenant_count}</li>
                                 <li><strong>Complaints:</strong> {propertyData?.complaint_count}</li>
@@ -98,6 +120,7 @@ function PropertyManager() {
                 </Row>
             </Container>
 
+            {/* Bottom Navigation */}
             <Navbar
                 fixed="bottom"
                 bg="dark"
@@ -112,14 +135,14 @@ function PropertyManager() {
                 </Nav.Item>
 
                 <Nav.Item>
-                    <Nav.Link onClick={handleShowTenants} className="text-center text-white">
+                    <Nav.Link onClick={() => setShowTenants(true)} className="text-center text-white">
                         <div><i className="bi bi-person-lines-fill"></i></div>
                         <small>Tenants</small>
                     </Nav.Link>
                 </Nav.Item>
 
                 <Nav.Item>
-                    <Nav.Link onClick={handleShowUnits} className="text-center text-white">
+                    <Nav.Link onClick={() => setShowUnits(true)} className="text-center text-white">
                         <div><i className="bi bi-house"></i></div>
                         <small>Units</small>
                     </Nav.Link>
