@@ -84,6 +84,27 @@ router.get('/managers', async (req, res) => {
     }
 })
 
+/** GET /api/property/unit/units
+ * Retrieves all units
+ * Required query parameters: property_id
+ */
+router.get('/unit/units', async (req, res) => {
+    try {
+        const { property_id } = req.query;
+        if (!property_id) {
+            return res.status(400).json({ error: 'Missing required parameter: property_id' });
+        }
+        const result = await pool.query(
+            `SELECT * FROM V_UnitDetails WHERE property_id = $1`,
+            [property_id]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Database query failed.' });
+    }
+});
+
 
 /** POST /api/property/unit 
  * Creates or updates a Unit at the property_id provided
@@ -145,6 +166,32 @@ router.get('/unit', async (req, res) => {
         res.status(500).json({error: "Database query failed."})
     }
 });
+
+/** GET /api/property/unit/tenants
+ * Retrieves all tenants for a property
+ * Required query parameters: property_id
+ */
+router.get('/unit/tenants', async (req, res) => {
+    try {
+        const { property_id } = req.query;
+        if (!property_id) {
+            return res.status(400).json({
+                error: 'Missing required parameter: property_id'
+            });
+        }
+
+        const result = await pool.query(
+            `SELECT * FROM V_TenantDetails WHERE property_id = $1`,
+            [property_id]
+        );
+
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Database query failed." });
+    }
+});
+
 
 /** POST /api/property/unit/tenant
  * Adds a tenant to a unit
