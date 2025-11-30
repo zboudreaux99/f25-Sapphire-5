@@ -126,3 +126,60 @@ CREATE TRIGGER sensor_reading_trigger
 AFTER INSERT ON SensorReading
 FOR EACH ROW
 EXECUTE FUNCTION process_sensor_reading();
+
+-----------------------------------------------------------------------------------------------------------------
+--  Complaints
+-----------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION process_complaint()
+RETURNS TRIGGER AS $$
+DECLARE
+    user_record RECORD;
+    property_id_var INT;
+    unit_id_var INT;
+    notification_message TEXT;
+    json_payload JSONB;
+BEGIN
+    SELECT u.property_id, u.unit_id INTO property_id_var, unit_id_var
+    FROM Unit u
+    JOIN Tenant t ON u.unit_id = t.unit_id
+    WHERE t.tenant_id = NEW.initiating_tenant_id;
+
+    -- Notify property managers
+    FOR user_record IN
+        SELECT u.user_id, u.email
+        FROM Users u
+        JOIN Manager m ON u.user_id = m.user_id
+        JOIN PropertyManagers pm ON m.manager_id = pm.manager_id
+        WHERE pm.property_id = property_id_var
+    LOOP
+        notification_message := format(
+            'A new complaint has been filed by a tenant in unit %s regarding unit %s. Complaint: %s',
+            (SELECT name FROM Unit WHERE unit_id = unit_id_var),
+            (SELECT name FROM Unit WHERE unit_id = NEW.complained_about_unit_id),
+            NEW.description
+        );
+
+        INSERT INTO Notification (user_id, unit_id, property_id, type, reference_id, message)
+        VALUES (user_record.user_id, unit_id_var, property_id_var, 'complaint', NEW.complaint_id, notification_message);
+
+        json_payload := jsonb_build_object(
+            'notification_id', (SELECT last_value FROM notification_notification_id_seq),
+            'user_id', user_record.user_id,
+            'email', user_record.email,
+            'unit_id', unit_id_var,
+            'property_id', property_id_var,
+            'type', 'complaint',
+            'message', notification_message
+        );
+
+        PERFORM pg_notify('complaint', json_payload::text);
+    END LOOP;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER complaint_trigger
+AFTER INSERT ON Complaint
+FOR EACH ROW
+EXECUTE FUNCTION process_complaint();
