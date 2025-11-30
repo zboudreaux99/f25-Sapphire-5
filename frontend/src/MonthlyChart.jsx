@@ -131,6 +131,11 @@ function MonthlyChart({ month, view }) {
         };
 
         fetchSensorData();
+        if (containerRef.current)
+        {
+            window.dispatchEvent(new Event("Resize"));
+        }
+
     }, [view, month]);
 
     if (loading) {

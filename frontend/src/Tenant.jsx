@@ -94,8 +94,8 @@ function Tenant() {
                                     className="shadow-lg liquid-glass text-center mx-auto"
                                     style={{
                                         backgroundColor: "transparent",
-                                        height: "300px",
-                                        maxWidth: "600px",
+                                        height: "400px",
+                                        maxWidth: "500px",
                                     }}
                                 >
                                     <Card.Body className="d-flex flex-column justify-content-center">
