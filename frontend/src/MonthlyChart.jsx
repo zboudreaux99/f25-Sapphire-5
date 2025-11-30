@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Line } from "react-chartjs-2";
 import {
     Chart as ChartJS,
@@ -9,14 +9,39 @@ import {
     Tooltip,
     Legend,
     Title,
+    Filler,
 } from "chart.js";
 
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend, Title);
+ChartJS.register(
+    LineElement,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    Tooltip,
+    Legend,
+    Title,
+    Filler
+);
 
 function MonthlyChart({ month, view }) {
     const [labels, setLabels] = useState([]);
     const [values, setValues] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const containerRef = useRef(null);
+
+    // Re-render carousel container when Chart.js becomes visible
+    useEffect(() => {
+        const observer = new ResizeObserver(() => {
+            window.dispatchEvent(new Event("resize"));
+        });
+
+        if (containerRef.current) {
+            observer.observe(containerRef.current);
+        }
+
+        return () => observer.disconnect();
+    }, []);
 
     useEffect(() => {
         const fetchSensorData = async () => {
@@ -129,6 +154,7 @@ function MonthlyChart({ month, view }) {
 
     const options = {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 display: true,
@@ -166,8 +192,9 @@ function MonthlyChart({ month, view }) {
     };
 
     return (
-        <div style={{ height: "300px" }}>
-            <Line data={chartData} options={options} />
+        <div ref={containerRef} style={{ height: "300px" }}>
+            {/* Forces re-render at correct size */}
+            <Line data={chartData} options={options} redraw />
         </div>
     );
 }

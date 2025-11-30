@@ -8,9 +8,17 @@ function PMTenants({ show, handleClose }) {
     const [tenants, setTenants] = useState([]);
     const [units, setUnits] = useState([]);
     const [addingTenant, setAddingTenant] = useState(false);
-    const [newTenant, setNewTenant] = useState({ tenant_name: "", unit_id: "" });
+    const [newTenant, setNewTenant] = useState({ tenant_name: "", unit_id: null });
 
     const property_id = 1;
+
+    const normalizeUnits = (raw) => {
+        return raw.map((u, idx) => {
+            const unit_id = Number(u.unit_id ?? u.unitid ?? u.id);
+            const unit_name = u.unit_name ?? u.name;
+            return { unit_id, unit_name };
+        });
+    };
 
     // Load tenants and units
     const loadTenants = async () => {
@@ -19,8 +27,8 @@ function PMTenants({ show, handleClose }) {
             const unitsRes = await fetch(
                 `http://localhost:8080/api/property/unit/units?property_id=${property_id}`
             );
-            const unitsData = await unitsRes.json();
-            setUnits(unitsData);
+            const fixedUnits = normalizeUnits(await unitsRes.json());
+            setUnits(fixedUnits);
 
             // Tenants for display
             const tenantsRes = await fetch(
@@ -39,39 +47,61 @@ function PMTenants({ show, handleClose }) {
 
     const handleSaveNewTenant = async () => {
         if (!newTenant.tenant_name || !newTenant.unit_id) {
-            return alert("Please fill out all fields");
+            alert("Please fill out all fields");
+            return;
         }
 
+        const payload = {
+            user_id: 1, // keep using the same user_id for simple tenants
+            name: newTenant.tenant_name,
+            unit_id: Number(newTenant.unit_id)
+        };
+
         try {
-            await fetch("http://localhost:8080/api/property/unit/tenant", {
+            const res = await fetch("http://localhost:8080/api/property/unit/tenant", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    user_id: 1,
-                    name: newTenant.tenant_name,
-                    unit_id: newTenant.unit_id
-                })
+                body: JSON.stringify(payload)
             });
+
+            let body = null;
+            try {
+                body = await res.json();
+            } catch (e) {
+                console.warn("POST had no JSON body");
+            }
+
+            if (!res.ok) {
+                console.error("POST failed:", body);
+
+                alert("A tenant is already assigned to this unit.");
+
+                return;
+            }
 
             await loadTenants(); // reload tenant list
             setAddingTenant(false);
-            setNewTenant({ tenant_name: "", unit_id: "" }); // clear form
-        } catch (e) {
-            console.error("Error saving tenant:", e);
+            setNewTenant({ tenant_name: "", unit_id: null });
+
+        } catch (err) {
+            console.error("handleSaveNewTenant ERROR:", err);
+            alert("Failed to add tenant.");
         }
     };
 
+
+
     const handleRemoveTenant = async (tenantId) => {
         try {
-            await fetch("http://localhost:8080/api/property/unit/tenant/remove", {
+            const res = await fetch("http://localhost:8080/api/property/unit/tenant/remove", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ tenant_id: tenantId })
             });
-
+            await res.json();
             await loadTenants(); // reload tenant list after removal
-        } catch (e) {
-            console.error("Error removing tenant:", e);
+        } catch (err) {
+            console.error("handleRemoveTenant ERROR:", err);
         }
     };
 
@@ -90,18 +120,17 @@ function PMTenants({ show, handleClose }) {
                             <Form.Control
                                 type="text"
                                 value={newTenant.tenant_name}
-                                onChange={(e) =>
-                                    setNewTenant({ ...newTenant, tenant_name: e.target.value })
-                                }
+                                onChange={(e) => setNewTenant({ ...newTenant, tenant_name: e.target.value })}
                             />
                         </Form.Group>
                         <Form.Group className="mb-2">
                             <Form.Label>Unit</Form.Label>
                             <Form.Select
-                                value={newTenant.unit_id}
-                                onChange={(e) =>
-                                    setNewTenant({ ...newTenant, unit_id: e.target.value })
-                                }
+                                value={newTenant.unit_id ?? ""}
+                                onChange={(e) => {
+                                    const num = Number(e.target.value);
+                                    setNewTenant({ ...newTenant, unit_id: isNaN(num) ? null : num });
+                                }}
                             >
                                 <option value="">Select a unit</option>
                                 {units.map((u) => (
@@ -119,7 +148,7 @@ function PMTenants({ show, handleClose }) {
                             variant="secondary"
                             onClick={() => {
                                 setAddingTenant(false);
-                                setNewTenant({ tenant_name: "", unit_id: "" });
+                                setNewTenant({ tenant_name: "", unit_id: null });
                             }}
                         >
                             Cancel
@@ -135,18 +164,14 @@ function PMTenants({ show, handleClose }) {
 
                 <Accordion>
                     {tenants.map((tenant, idx) => (
-                        <Accordion.Item eventKey={idx} key={tenant.tenant_id}>
+                        <Accordion.Item eventKey={idx.toString()} key={tenant.tenant_id}>
                             <Accordion.Header>{tenant.tenant_name}</Accordion.Header>
                             <Accordion.Body>
                                 <p><strong>Unit:</strong> {tenant.unit_name}</p>
                                 <p><strong>Property:</strong> {tenant.property_name}</p>
                                 <p><strong>Complaints:</strong> {tenant.complaints_initiated}</p>
 
-                                <Button
-                                    size="sm"
-                                    variant="danger"
-                                    onClick={() => handleRemoveTenant(tenant.tenant_id)}
-                                >
+                                <Button size="sm" variant="danger" onClick={() => handleRemoveTenant(tenant.tenant_id)}>
                                     Remove Tenant
                                 </Button>
                             </Accordion.Body>
@@ -156,9 +181,7 @@ function PMTenants({ show, handleClose }) {
             </Modal.Body>
 
             <Modal.Footer>
-                <Button variant="secondary" onClick={handleClose}>
-                    Close
-                </Button>
+                <Button variant="secondary" onClick={handleClose}>Close</Button>
             </Modal.Footer>
         </Modal>
     );
