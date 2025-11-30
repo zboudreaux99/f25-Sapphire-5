@@ -183,3 +183,62 @@ CREATE TRIGGER complaint_trigger
 AFTER INSERT ON Complaint
 FOR EACH ROW
 EXECUTE FUNCTION process_complaint();
+-----------------------------------------------------------------------------------------------------------------
+--  Rewards
+-----------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION process_reward()
+RETURNS TRIGGER AS $$
+DECLARE
+    user_record RECORD;
+    property_id_var INT;
+    unit_id_var INT;
+    reward_name_var VARCHAR;
+    reward_description_var TEXT;
+    notification_message TEXT;
+    json_payload JSONB;
+BEGIN
+    SELECT u.property_id, u.unit_id INTO property_id_var, unit_id_var
+    FROM Unit u
+    WHERE u.unit_id = NEW.unit_id;
+
+    SELECT name, description INTO reward_name_var, reward_description_var
+    FROM Reward
+    WHERE reward_id = NEW.reward_id;
+
+    -- Notify tenants of the unit
+    FOR user_record IN
+        SELECT u.user_id, u.email
+        FROM Users u
+        JOIN Tenant t ON u.user_id = t.user_id
+        WHERE t.unit_id = unit_id_var
+    LOOP
+        notification_message := format(
+            'Congratulations! You have earned a reward: %s.',
+            reward_name_var
+        );
+
+        INSERT INTO Notification (user_id, unit_id, property_id, type, reference_id, message)
+        VALUES (user_record.user_id, unit_id_var, property_id_var, 'reward', NEW.unit_reward_id, notification_message);
+
+        json_payload := jsonb_build_object(
+            'notification_id', (SELECT last_value FROM notification_notification_id_seq),
+            'user_id', user_record.user_id,
+            'email', user_record.email,
+            'unit_id', unit_id_var,
+            'property_id', property_id_var,
+            'type', 'reward',
+            'reward_name', reward_name_var,
+            'reward_description', reward_description_var
+        );
+
+        PERFORM pg_notify('reward', json_payload::text);
+    END LOOP;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER reward_trigger
+AFTER INSERT ON UnitRewards
+FOR EACH ROW
+EXECUTE FUNCTION process_reward();

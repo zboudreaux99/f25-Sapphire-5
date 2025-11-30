@@ -54,4 +54,21 @@ async function sendComplaintEmail(notificationPayload) {
   console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
 }
 
-module.exports = { initializeTransporter, sendNoiseViolationEmail, sendComplaintEmail };
+async function sendRewardEmail(notificationPayload) {
+  if (!transporter) {
+    throw new Error('Email transporter is not initialized.');
+  }
+
+  const info = await transporter.sendMail({
+    from: '"Sapphire Sounds" <noreply@sapphiresounds.com>',
+    to: notificationPayload.email, 
+    subject: 'You Earned a Reward!',
+    text: `Congratulations! You have earned a reward. \n Reward: ${notificationPayload.reward_name} \n Description: ${notificationPayload.reward_description}`,
+    html: `<p>Congratulations!</p><p>You have earned a reward.</p><p><b>Reward:</b> ${notificationPayload.reward_name}</p><p><b>Description:</b> ${notificationPayload.reward_description}</p>`,
+  });
+
+  console.log('Message sent: %s', info.messageId);
+  console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+}
+
+module.exports = { initializeTransporter, sendNoiseViolationEmail, sendComplaintEmail, sendRewardEmail };
