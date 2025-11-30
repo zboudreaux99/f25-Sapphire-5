@@ -1,11 +1,11 @@
-const { sendNoiseViolationEmail } = require('./emailService');
+const { sendNoiseViolationEmail, sendComplaintEmail } = require('./emailService');
 
 async function listenForNotifications(pool) {
   const client = await pool.connect();
 
   try {
     await client.query('LISTEN noise_violation');
-    // await client.query('LISTEN new_complaint'); // Example for the future
+    await client.query('LISTEN complaint'); 
     // await client.query('LISTEN new_reward');   // Example for the future
 
     console.log('✅ Successfully connected and listening for database notifications.');
@@ -35,6 +35,20 @@ async function listenForNotifications(pool) {
 
           case 'new_complaint':
             // Future logic for handling new complaints
+            break;
+
+          case 'complaint':
+            (async () => {
+              try {
+                console.log(`Handling complaint for user ${payload.user_id}`);
+                
+                // Send email notification
+                await sendComplaintEmail(payload);
+
+              } catch (emailError) {
+                console.error('Failed to send complaint email:', emailError);
+              }
+            })();
             break;
 
           case 'new_reward':

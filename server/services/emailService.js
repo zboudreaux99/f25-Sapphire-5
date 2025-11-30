@@ -37,4 +37,21 @@ async function sendNoiseViolationEmail(notificationPayload) {
   console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
 }
 
-module.exports = { initializeTransporter, sendNoiseViolationEmail };
+async function sendComplaintEmail(notificationPayload) {
+  if (!transporter) {
+    throw new Error('Email transporter is not initialized.');
+  }
+
+  const info = await transporter.sendMail({
+    from: '"Sapphire Sounds" <noreply@sapphiresounds.com>',
+    to: notificationPayload.email, 
+    subject: 'New Complaint Filed',
+    text: `Hello, a new complaint has been filed. Message: ${notificationPayload.message}`,
+    html: `<p>Hello,</p><p>A new complaint has been filed.</p><p><b>Details:</b> ${notificationPayload.message}</p>`,
+  });
+
+  console.log('Message sent: %s', info.messageId);
+  console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+}
+
+module.exports = { initializeTransporter, sendNoiseViolationEmail, sendComplaintEmail };
