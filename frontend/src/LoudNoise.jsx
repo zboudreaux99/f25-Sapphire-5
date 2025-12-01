@@ -1,5 +1,10 @@
 import Button from 'react-bootstrap/Button';
 
+/**
+ * Button created to simulate a loud noise.
+ *
+ * @return {Button} location and placement of "button".
+ */
 function LoudNoise(){
     return (
         <>

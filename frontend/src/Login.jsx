@@ -2,6 +2,11 @@ import { Image, Container, Row, Col, Card, Form, Button } from "react-bootstrap"
 import { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 
+/**
+ * Creates the functional login box that allows users to enter their email and password.
+ * 
+ * @return The rows, columns, buttons, container, and cards needed to create the login box.
+ */
 function Login() {
     const navigate = useNavigate();
 
@@ -30,13 +35,13 @@ function Login() {
                 return;
             }
 
-            // Save token and role to local storage
+            // Save token and role to local storage.
             localStorage.setItem('token', data.token);
             localStorage.setItem('role', data.user.role);
             localStorage.setItem('userId', data.user.id);
             localStorage.setItem('email', data.user.email);
 
-            // Redirect based on role
+            // Redirect based on role.
             if (data.user.role === 'tenant') {
                 navigate('/tenant');
             } else if (data.user.role === 'manager') {

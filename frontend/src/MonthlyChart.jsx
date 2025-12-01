@@ -23,6 +23,14 @@ ChartJS.register(
     Filler
 );
 
+/**
+ * Creates a formatted chart that displays days, labels, and timestamps.
+ *
+ * @param month Holds the month for the chart.
+ * @param view Holds the formatted font and text size used when labeling the chart.
+ *
+ * @return The correct rendering and size of the monthly chart.
+ */
 function MonthlyChart({ month, view }) {
     const [labels, setLabels] = useState([]);
     const [values, setValues] = useState([]);
@@ -30,7 +38,7 @@ function MonthlyChart({ month, view }) {
 
     const containerRef = useRef(null);
 
-    // Re-render carousel container when Chart.js becomes visible
+    // Re-render carousel container when Chart.js becomes visible.
     useEffect(() => {
         const observer = new ResizeObserver(() => {
             window.dispatchEvent(new Event("resize"));
@@ -64,7 +72,7 @@ function MonthlyChart({ month, view }) {
                     return;
                 }
 
-                // Sort by timestamp
+                // Sort by timestamp.
                 const sorted = json.sort(
                     (a, b) => new Date(a.reading_timestamp) - new Date(b.reading_timestamp)
                 );

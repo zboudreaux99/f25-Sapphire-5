@@ -4,6 +4,14 @@ import Modal from "react-bootstrap/Modal";
 import Accordion from "react-bootstrap/Accordion";
 import Form from "react-bootstrap/Form";
 
+/**
+ * Retrieves and holds the tenant data entered by the property manager.
+ *
+ * @param show Allows for the modal to be visible.
+ * @param handleClose Specifies a function to run when the modal is requested to not be visible.
+ * 
+ * @return The state of the modal.
+ */
 function PMTenants({ show, handleClose }) {
     const [tenants, setTenants] = useState([]);
     const [units, setUnits] = useState([]);
@@ -20,17 +28,17 @@ function PMTenants({ show, handleClose }) {
         });
     };
 
-    // Load tenants and units
+    // Load tenants and units.
     const loadTenants = async () => {
         try {
-            // Units for dropdown
+            // Units for dropdown.
             const unitsRes = await fetch(
                 `http://localhost:8080/api/property/unit/units?property_id=${property_id}`
             );
             const fixedUnits = normalizeUnits(await unitsRes.json());
             setUnits(fixedUnits);
 
-            // Tenants for display
+            // Tenants for display.
             const tenantsRes = await fetch(
                 `http://localhost:8080/api/property/unit/tenants?property_id=${property_id}`
             );
@@ -52,7 +60,7 @@ function PMTenants({ show, handleClose }) {
         }
 
         const payload = {
-            user_id: 1, // keep using the same user_id for simple tenants
+            user_id: 1, // Keep using the same user_id for simple tenants.
             name: newTenant.tenant_name,
             unit_id: Number(newTenant.unit_id)
         };
@@ -79,7 +87,7 @@ function PMTenants({ show, handleClose }) {
                 return;
             }
 
-            await loadTenants(); // reload tenant list
+            await loadTenants(); // Reload tenant list.
             setAddingTenant(false);
             setNewTenant({ tenant_name: "", unit_id: null });
 
@@ -99,7 +107,7 @@ function PMTenants({ show, handleClose }) {
                 body: JSON.stringify({ tenant_id: tenantId })
             });
             await res.json();
-            await loadTenants(); // reload tenant list after removal
+            await loadTenants(); // Reload tenant list after removal.
         } catch (err) {
             console.error("handleRemoveTenant ERROR:", err);
         }
