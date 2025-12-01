@@ -6,6 +6,16 @@ import PMTenants from "./PMTenants";
 import PMUnits from "./PMUnits";
 import UnitRewardManager from "./UnitRewardManager";
 
+/**
+ * PropertyManager function
+ *  Displays the property manager dashboard, including:
+ *  - A welcome message with property manager name.
+ *  - A property's details (address, units, tenants, complaints, rewards).
+ *  - Bottom navigation bar (Home, Tenants, Units, Settings).
+ *  - Modals for tenant and unit managing.
+ 
+ * @returns {JSX.Element} - Property Manager dashboard.
+ */
 function PropertyManager() {
     const navigate = useNavigate();
 
@@ -165,20 +175,20 @@ const handleDeleteProperty = async (propertyId) => {
     }
 };
 
-    // Fetch on page load
+    // Fetch on page load.
     useEffect(() => {
         fetchData();
     }, []);
 
-    // Closing actions for modals
+    // Closing actions for modals.
     const handleCloseUnits = () => {
         setShowUnits(false);
-        fetchData();   // Refresh data when Units modal closes
+        fetchData();   // Refresh data when Units modal closes.
     };
 
     const handleCloseTenants = () => {
         setShowTenants(false);
-        fetchData();   // Refresh data when Tenants modal closes
+        fetchData();   // Refresh data when Tenants modal closes.
     };
 
     if (loading) return (
