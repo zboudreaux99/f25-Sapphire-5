@@ -1,0 +1,186 @@
+//// -- Database: Sapphire Sounds --
+
+// --- Enums ---
+Enum user_role {
+  admin
+  manager
+  tenant
+}
+
+Enum complaint_status {
+  open
+  in_progress
+  resolved
+}
+
+Enum notification_type {
+  noise_violation
+  complaint
+  reward
+}
+
+Enum notification_status {
+  unread
+  read
+}
+
+// --- Tables ---
+
+/// Stores property information.
+Table Property {
+  property_id integer [pk, increment]
+  name varchar(255) [not null]
+  address001 varchar(255) [not null]
+  address002 varchar(255)
+  city varchar(100)
+  state varchar(50)
+  zipcode varchar(20)
+}
+
+/// Stores individual units within a property.
+Table Unit {
+  unit_id integer [pk, increment]
+  name varchar(255) [not null]
+  property_id integer [not null]
+  // Unique constraint on (property_id, name)
+  // Unique constraint on (property_id, unit_id)
+}
+
+/// Stores user account information and credentials.
+Table Users {
+  user_id integer [pk, increment]
+  email varchar(255) [unique, not null]
+  password_hash varchar(255) [not null]
+  role user_role [not null]
+  created_at timestamptz [default: `CURRENT_TIMESTAMP`]
+  last_login timestamptz
+}
+
+/// Stores information about property managers.
+Table Manager {
+  manager_id integer [pk, increment]
+  name varchar(255) [not null]
+  address varchar(255)
+  city varchar(100)
+  state varchar(50)
+  zipcode varchar(20)
+  user_id integer [unique]
+}
+
+/// Junction table linking managers to properties.
+Table PropertyManagers {
+  property_id integer [pk]
+  manager_id integer [pk]
+}
+
+/// Stores information about sound sensors.
+Table Sensor {
+  sensor_id integer [pk, increment]
+  location varchar(255)
+  unit_id integer [not null]
+  // Unique constraint on (unit_id, location)
+}
+
+/// Stores individual sound level readings from sensors.
+Table SensorReading {
+  reading_id integer [pk, increment]
+  db integer [not null]
+  reading_timestamp timestamptz [default: `CURRENT_TIMESTAMP`]
+  sensor_id integer [not null]
+}
+
+/// Stores the last heartbeat from a sensor to monitor connectivity.
+Table SensorHeartbeat {
+  sensor_id integer [pk]
+  last_check_in_timestamp timestamptz [not null]
+  connectivity_status varchar(20) [not null]
+}
+
+/// Stores tenant information and links them to units and users.
+Table Tenant {
+  tenant_id integer [pk, increment]
+  name varchar(255) [not null]
+  unit_id integer
+  user_id integer [unique]
+}
+
+// --- Relationships ---
+Ref: Manager.user_id > Users.user_id
+Ref: PropertyManagers.property_id > Property.property_id
+Ref: PropertyManagers.manager_id > Manager.manager_id
+Ref: Unit.property_id > Property.property_id
+Ref: Sensor.unit_id > Unit.unit_id
+Ref: SensorReading.sensor_id > Sensor.sensor_id
+Ref: SensorHeartbeat.sensor_id > Sensor.sensor_id
+Ref: Tenant.unit_id > Unit.unit_id
+Ref: Tenant.user_id > Users.user_id
+
+// --- Additional Tables ---
+
+/// Stores noise rules for properties.
+Table NoiseRule {
+  rule_id integer [pk, increment]
+  property_id integer [not null]
+  max_db_level integer [not null]
+  start_time time [not null]
+  end_time time [not null]
+  description varchar(255)
+}
+
+/// Logs incidents where noise levels exceeded the rules.
+Table NoiseIncident {
+  incident_id integer [pk, increment]
+  unit_id integer [not null]
+  rule_id integer [not null]
+  start_timestamp timestamptz [not null]
+  end_timestamp timestamptz
+  max_db_level integer
+  average_db_level integer
+}
+
+/// Stores complaints filed by tenants.
+Table Complaint {
+  complaint_id integer [pk, increment]
+  reporting_tenant_id integer [not null]
+  unit_id integer [not null, note: 'The unit being complained about']
+  incident_id integer [note: 'Optional link to a specific noise incident']
+  description text [not null]
+  status complaint_status [not null, default: 'open']
+  created_at timestamptz [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz
+}
+
+/// Stores available rewards for a property.
+Table Reward {
+  reward_id integer [pk, increment]
+  property_id integer [not null]
+  name varchar(255) [not null]
+  description text
+  // points_cost integer [note: 'Could be added for a gamification system']
+}
+
+/// Stores notifications for users.
+Table Notification {
+  notification_id integer [pk, increment]
+  user_id integer [not null]
+  type notification_type [not null]
+  message text [not null]
+  status notification_status [not null, default: 'unread']
+  created_at timestamptz [default: `CURRENT_TIMESTAMP`]
+  complaint_id integer
+  reward_id integer
+  incident_id integer
+}
+
+// --- Additional Relationships ---
+Ref: NoiseRule.property_id > Property.property_id
+Ref: NoiseIncident.unit_id > Unit.unit_id
+Ref: NoiseIncident.rule_id > NoiseRule.rule_id
+Ref: Complaint.reporting_tenant_id > Tenant.tenant_id
+Ref: Complaint.unit_id > Unit.unit_id
+Ref: Complaint.incident_id > NoiseIncident.incident_id
+Ref: Reward.property_id > Property.property_id
+Ref: Notification.user_id > Users.user_id
+Ref: Notification.complaint_id > Complaint.complaint_id
+Ref: Notification.reward_id > Reward.reward_id
+Ref: Notification.incident_id > NoiseIncident.incident_id

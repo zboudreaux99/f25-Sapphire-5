@@ -19,6 +19,8 @@ JOIN Sensor s ON sr.sensor_id = s.sensor_id
 JOIN Unit u ON s.unit_id = u.unit_id
 JOIN Property p ON u.property_id = p.property_id;
 
+COMMENT ON VIEW V_SensorReadingsDetails IS 'Provides a denormalized view of sensor readings, joining them with sensor, unit, and property information for easy querying and analysis.';
+
 CREATE VIEW V_TenantDetails AS
 SELECT
     t.tenant_id,
@@ -36,6 +38,8 @@ LEFT JOIN Property p ON u.property_id = p.property_id
 LEFT JOIN Complaint c ON t.tenant_id = c.initiating_tenant_id
 GROUP BY
     t.tenant_id, t.name, u.unit_id, u.name, p.property_id, p.name;
+
+COMMENT ON VIEW V_TenantDetails IS 'Aggregates tenant information with their assigned unit, property, and a count of complaints they have initiated.';
 
 CREATE VIEW V_PropertyDetails AS
 SELECT
@@ -59,6 +63,8 @@ LEFT JOIN Reward r ON p.property_id = r.property_id
 GROUP BY
     p.property_id, p.name, p.address001, p.address002, p.city, p.state, p.zipcode;
 
+COMMENT ON VIEW V_PropertyDetails IS 'Presents a summary for each property, including its address and counts of associated units, tenants, complaints, and rewards.';
+
 CREATE VIEW V_UnitDetails AS
 SELECT
     u.unit_id,
@@ -80,6 +86,8 @@ LEFT JOIN Sensor s ON u.unit_id = s.unit_id
 LEFT JOIN UnitRewards ur ON u.unit_id = ur.unit_id
 GROUP BY
     u.unit_id, u.name, p.property_id, p.name;
+
+COMMENT ON VIEW V_UnitDetails IS 'Summarizes key metrics for each unit, such as tenant count, sensor count, rewards received, and complaints initiated vs. received.';
 
 
 CREATE VIEW V_SensorDetails AS
@@ -103,6 +111,8 @@ LEFT JOIN SensorHeartbeat h ON s.sensor_id = h.sensor_id
 JOIN Unit u ON s.unit_id = u.unit_id
 JOIN Property p ON u.property_id = p.property_id;
 
+COMMENT ON VIEW V_SensorDetails IS 'Displays detailed information for each sensor, including its location, associated unit/property, and its current connectivity status (ONLINE/OFFLINE) based on heartbeat data.';
+
 CREATE VIEW V_RewardDetails AS
 SELECT
     r.reward_id,
@@ -119,6 +129,8 @@ LEFT JOIN Unit u ON ur.unit_id = u.unit_id
 GROUP BY
     r.reward_id, r.name, r.description, p.property_id, p.name;
 
+COMMENT ON VIEW V_RewardDetails IS 'Lists all available rewards, their descriptions, associated properties, and a count of how many units have earned each reward.';
+
 CREATE VIEW V_PropertyManagers AS
 SELECT
     p.property_id,
@@ -131,6 +143,8 @@ JOIN
     PropertyManagers pm ON p.property_id = pm.property_id
 JOIN
     Manager m ON pm.manager_id = m.manager_id;
+
+COMMENT ON VIEW V_PropertyManagers IS 'A simple join view to easily see which managers are assigned to which properties.';
 
 CREATE VIEW V_ComplaintDetails AS
 SELECT
@@ -150,6 +164,8 @@ LEFT JOIN Tenant ti ON c.initiating_tenant_id = ti.tenant_id
 LEFT JOIN Unit cau ON c.complained_about_unit_id = cau.unit_id
 LEFT JOIN Property p ON cau.property_id = p.property_id;
 
+COMMENT ON VIEW V_ComplaintDetails IS 'Provides a comprehensive look at each complaint, linking it to the initiating tenant, the complained-about unit, and the relevant property.';
+
 CREATE VIEW V_NoiseRuleDetails AS
 SELECT
     nr.noise_rule_id,
@@ -163,6 +179,8 @@ SELECT
 FROM
     NoiseRule nr
 JOIN Property p ON nr.property_id = p.property_id;
+
+COMMENT ON VIEW V_NoiseRuleDetails IS 'Displays noise rule definitions along with the name of the property to which they apply.';
 
 CREATE OR REPLACE VIEW V_UnitRewardsDetails AS
 SELECT
@@ -182,3 +200,5 @@ FROM
 JOIN Unit u ON ur.unit_id = u.unit_id
 JOIN Reward r ON ur.reward_id = r.reward_id
 JOIN Property p ON u.property_id = p.property_id;
+
+COMMENT ON VIEW V_UnitRewardsDetails IS 'Details every reward granted to a unit, including reward information, grant/redeem dates, and availability status.';

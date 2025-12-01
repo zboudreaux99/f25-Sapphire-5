@@ -26,6 +26,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
+COMMENT ON FUNCTION time_to_tstzrange(TIME, TIME) IS 'Converts a start and end time into a TSTZRANGE on a fixed date. Handles overnight ranges by adding a day to the end time if it''s earlier than the start time. Required for the EXCLUDE constraint on NoiseRule.';
+
 CREATE TABLE Property (
     property_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -35,6 +37,10 @@ CREATE TABLE Property (
     state VARCHAR(50),
     zipcode VARCHAR(20)
 );
+
+COMMENT ON TABLE Property IS 'Represents a physical property, such as an apartment building or complex.';
+COMMENT ON COLUMN Property.address001 IS 'Primary address line for the property.';
+COMMENT ON COLUMN Property.address002 IS 'Secondary address line (e.g., apartment, suite).';
 
 CREATE TYPE user_role AS ENUM ('admin', 'manager', 'tenant');
 
@@ -47,6 +53,10 @@ CREATE TABLE Users (
     last_login TIMESTAMP WITH TIME ZONE
 );
 
+COMMENT ON TABLE Users IS 'Stores user account information for authentication and authorization.';
+COMMENT ON COLUMN Users.password_hash IS 'Hashed password for user authentication. Should never store plain text passwords.';
+COMMENT ON COLUMN Users.role IS 'Defines the user''s role within the system (admin, manager, tenant).';
+
 CREATE TABLE Manager (
     manager_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -58,6 +68,8 @@ CREATE TABLE Manager (
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
 );
 
+COMMENT ON TABLE Manager IS 'Stores information about property managers.';
+
 
 CREATE TABLE PropertyManagers (
     property_id INT NOT NULL,
@@ -66,6 +78,8 @@ CREATE TABLE PropertyManagers (
     FOREIGN KEY (property_id) REFERENCES Property(property_id) ON DELETE CASCADE,
     FOREIGN KEY (manager_id) REFERENCES Manager(manager_id) ON DELETE CASCADE
 );
+
+COMMENT ON TABLE PropertyManagers IS 'Junction table linking properties to their assigned managers.';
 
 CREATE TABLE Unit (
     unit_id SERIAL PRIMARY KEY,
@@ -76,6 +90,8 @@ CREATE TABLE Unit (
     UNIQUE (property_id, unit_id)
 );
 
+COMMENT ON TABLE Unit IS 'Represents an individual unit within a property, such as an apartment.';
+
 CREATE TABLE Sensor (
     sensor_id SERIAL PRIMARY KEY,
     location VARCHAR(255),
@@ -83,6 +99,9 @@ CREATE TABLE Sensor (
     FOREIGN KEY (unit_id) REFERENCES Unit(unit_id) ON DELETE CASCADE,
     UNIQUE (unit_id, location)
 );
+
+COMMENT ON TABLE Sensor IS 'Represents a physical noise monitoring sensor installed in a unit.';
+COMMENT ON COLUMN Sensor.location IS 'Describes where the sensor is physically located within the unit (e.g., "living room", "ceiling").';
 
 CREATE TABLE SensorReading (
     reading_id SERIAL PRIMARY KEY,
@@ -92,12 +111,17 @@ CREATE TABLE SensorReading (
     FOREIGN KEY (sensor_id) REFERENCES Sensor(sensor_id) ON DELETE CASCADE
 );
 
+COMMENT ON TABLE SensorReading IS 'Stores individual noise level readings from a sensor at a specific point in time.';
+COMMENT ON COLUMN SensorReading.db IS 'The decibel level recorded by the sensor.';
+
 CREATE TABLE SensorHeartbeat (
     sensor_id INT PRIMARY KEY, 
     last_check_in_timestamp TIMESTAMPTZ NOT NULL,
     connectivity_status VARCHAR(20) NOT NULL,
     FOREIGN KEY (sensor_id) REFERENCES Sensor(sensor_id) ON DELETE CASCADE
 );
+
+COMMENT ON TABLE SensorHeartbeat IS 'Tracks the connectivity and last check-in time of each sensor to monitor its status.';
 
 CREATE TABLE Tenant (
     tenant_id SERIAL PRIMARY KEY,
@@ -107,6 +131,8 @@ CREATE TABLE Tenant (
     user_id INT UNIQUE,
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
 );
+
+COMMENT ON TABLE Tenant IS 'Represents a tenant residing in a unit. Can be linked to a user account.';
 
 
 CREATE TABLE Reward (
@@ -119,6 +145,8 @@ CREATE TABLE Reward (
     UNIQUE (property_id, name),
     UNIQUE (property_id, reward_id)
 ); 
+
+COMMENT ON TABLE Reward IS 'Defines rewards that can be granted to units/tenants, managed at the property level.';
 
 CREATE TABLE UnitRewards (
     unit_reward_id SERIAL PRIMARY KEY,
@@ -133,6 +161,8 @@ CREATE TABLE UnitRewards (
     CONSTRAINT chk_redeemed_after_granted CHECK (date_redeemed IS NULL OR date_redeemed >= date_granted)
 );
 
+COMMENT ON TABLE UnitRewards IS 'Tracks rewards that have been granted to specific units and when they were redeemed.';
+
 CREATE TYPE complaint_status AS ENUM ('open', 'in_progress', 'resolved');
 
 CREATE TABLE Complaint (
@@ -145,6 +175,8 @@ CREATE TABLE Complaint (
     FOREIGN KEY (initiating_tenant_id) REFERENCES Tenant(tenant_id) ON DELETE CASCADE,
     FOREIGN KEY (complained_about_unit_id) REFERENCES Unit(unit_id) ON DELETE SET NULL
 );
+
+COMMENT ON TABLE Complaint IS 'Stores noise complaints filed by tenants against other units.';
 
 CREATE TABLE NoiseRule (
     noise_rule_id SERIAL PRIMARY KEY,
@@ -159,6 +191,10 @@ CREATE TABLE NoiseRule (
     CONSTRAINT no_overlapping_rules EXCLUDE USING GIST (property_id WITH =, days_of_week WITH &&, time_to_tstzrange(start_time, end_time) WITH &&)
 );
 
+COMMENT ON TABLE NoiseRule IS 'Defines quiet hours and noise thresholds for a property.';
+COMMENT ON COLUMN NoiseRule.days_of_week IS 'Array of integers for days of the week, following ISO 8601 standard (1=Monday, ..., 7=Sunday).';
+COMMENT ON CONSTRAINT no_overlapping_rules ON NoiseRule IS 'Prevents the creation of overlapping noise rules for the same property on the same days and times.';
+
 CREATE TABLE NoiseViolation (
     violation_id SERIAL PRIMARY KEY,
     unit_id INT NOT NULL,
@@ -171,6 +207,8 @@ CREATE TABLE NoiseViolation (
     FOREIGN KEY (reading_id) REFERENCES SensorReading(reading_id) ON DELETE CASCADE,
     FOREIGN KEY (noise_rule_id) REFERENCES NoiseRule(noise_rule_id) ON DELETE CASCADE
 );
+
+COMMENT ON TABLE NoiseViolation IS 'Logs instances where a sensor reading has breached a defined noise rule.';
 
 CREATE TYPE notification_type AS ENUM ('noise_violation', 'complaint', 'reward');
 CREATE TYPE notification_status AS ENUM ('unread', 'read');
@@ -190,4 +228,4 @@ CREATE TABLE Notification (
     FOREIGN KEY (property_id) REFERENCES Property(property_id) ON DELETE SET NULL
 );
 
-
+COMMENT ON TABLE Notification IS 'Stores notifications to be displayed to users regarding violations, complaints, or rewards.';

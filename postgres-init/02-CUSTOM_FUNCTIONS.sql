@@ -122,6 +122,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION process_sensor_reading() IS 'Trigger function executed after a new SensorReading is inserted. It checks for sustained noise levels that violate a property''s noise rules and creates a NoiseViolation and notifications if conditions are met.';
+
 CREATE TRIGGER sensor_reading_trigger
 AFTER INSERT ON SensorReading
 FOR EACH ROW
@@ -178,6 +180,8 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION process_complaint() IS 'Trigger function executed after a new Complaint is inserted. It notifies the relevant property managers about the new complaint.';
 
 CREATE TRIGGER complaint_trigger
 AFTER INSERT ON Complaint
@@ -237,6 +241,8 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION process_reward() IS 'Trigger function executed after a new reward is granted in UnitRewards. It notifies the tenants of the unit that they have received a reward.';
 
 CREATE TRIGGER reward_trigger
 AFTER INSERT ON UnitRewards
