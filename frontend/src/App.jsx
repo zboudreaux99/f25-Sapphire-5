@@ -17,9 +17,14 @@ const apiCall = () => {
     console.log(data)
   })
 }
- 
+
+/**
+ * Renders a customizable button component.
+ * 
+ * @returns {Router} Configures an element to render when a pattern matches the current location.
+ */
 function App() {
-  apiCall();  //Check the console to see that server responds.
+  apiCall(); // Check the console to see that server responds.
   return (
     <>
     <Router>
