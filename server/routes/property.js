@@ -64,6 +64,55 @@ router.get('/', async (req, res) => {
     }
 });
 
+/** POST /api/property/remove
+ * Deletes a property
+ * Required fields: property_id
+ */
+router.post('/remove', async (req, res) => {
+
+    console.log('HIT /api/property/remove with body:', req.body);
+
+    try {
+        const { property_id } = req.body;
+
+        if (property_id === undefined) {
+            return res.status(400).json({
+                error: 'Missing required field: property_id'
+            });
+        }
+
+        // Protect simulated data ids 1 and 2 
+        const protectedIds = [1, 2];
+        if (protectedIds.includes(Number(property_id))) {
+            return res.status(400).json({
+                error: 'This property cannot be deleted in the demo environment.'
+            });
+        }
+
+        const result = await pool.query(
+            `DELETE FROM Property WHERE property_id = $1 RETURNING *`,
+            [property_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                error: 'Property not found.'
+            });
+        }
+
+        const property = result.rows[0];
+
+        res.status(200).json({
+            message: 'Property removed.',
+            property_id: property.property_id,
+            name: property.name
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Database query failed." });
+    }
+});
+
 /** GET /api/property/managers
  * Retrieves property managers
  * Required query parameters: property_id
