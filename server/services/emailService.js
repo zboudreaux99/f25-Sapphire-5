@@ -1,7 +1,20 @@
+/**
+ * @module emailService
+ * @description This service handles sending emails for various notifications using Nodemailer.
+ * It uses an Ethereal test account for development.
+ */
+
 const nodemailer = require('nodemailer');
 
+/** @type {import('nodemailer').Transporter} */
 let transporter;
 
+/**
+ * Initializes the Nodemailer transporter using a test account from Ethereal.
+ * This should be called once when the application starts.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function initializeTransporter() {
   const testAccount = await nodemailer.createTestAccount();
   console.log('📧 Ethereal test account created for development.');
@@ -20,6 +33,15 @@ async function initializeTransporter() {
   });
 }
 
+/**
+ * Sends an email notification for a noise violation.
+ * @async
+ * @param {object} notificationPayload - The payload of the notification.
+ * @param {string} notificationPayload.email - The recipient's email address.
+ * @param {string} notificationPayload.message - The details of the noise violation.
+ * @returns {Promise<void>}
+ * @throws {Error} If the transporter is not initialized.
+ */
 async function sendNoiseViolationEmail(notificationPayload) {
   if (!transporter) {
     throw new Error('Email transporter is not initialized.');
@@ -37,6 +59,15 @@ async function sendNoiseViolationEmail(notificationPayload) {
   console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
 }
 
+/**
+ * Sends an email notification about a new complaint.
+ * @async
+ * @param {object} notificationPayload - The payload of the notification.
+ * @param {string} notificationPayload.email - The recipient's email address.
+ * @param {string} notificationPayload.message - The details of the complaint.
+ * @returns {Promise<void>}
+ * @throws {Error} If the transporter is not initialized.
+ */
 async function sendComplaintEmail(notificationPayload) {
   if (!transporter) {
     throw new Error('Email transporter is not initialized.');
@@ -54,6 +85,16 @@ async function sendComplaintEmail(notificationPayload) {
   console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
 }
 
+/**
+ * Sends an email notification for an earned reward.
+ * @async
+ * @param {object} notificationPayload - The payload of the notification.
+ * @param {string} notificationPayload.email - The recipient's email address.
+ * @param {string} notificationPayload.reward_name - The name of the reward.
+ * @param {string} notificationPayload.reward_description - The description of the reward.
+ * @returns {Promise<void>}
+ * @throws {Error} If the transporter is not initialized.
+ */
 async function sendRewardEmail(notificationPayload) {
   if (!transporter) {
     throw new Error('Email transporter is not initialized.');

@@ -1,5 +1,18 @@
+/**
+ * @module notification-listener
+ * @description This module sets up a listener for PostgreSQL notifications on specific channels.
+ * When a notification is received, it dispatches the payload to the appropriate email service function.
+ * This allows for a decoupled way to handle events happening in the database.
+ */
+
 const { sendNoiseViolationEmail, sendComplaintEmail, sendRewardEmail } = require('./emailService');
 
+/**
+ * Connects to the PostgreSQL database and listens for notifications on the 'noise_violation', 'complaint', and 'reward' channels.
+ * @async
+ * @param {import('pg').Pool} pool - The PostgreSQL connection pool.
+ * @returns {Promise<void>} A promise that resolves when the listener is set up. The underlying client will continue to listen for notifications.
+ */
 async function listenForNotifications(pool) {
   const client = await pool.connect();
 
