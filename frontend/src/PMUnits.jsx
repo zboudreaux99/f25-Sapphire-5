@@ -4,6 +4,16 @@ import Modal from 'react-bootstrap/Modal';
 import Accordion from 'react-bootstrap/Accordion';
 import Form from 'react-bootstrap/Form';
 
+
+/**
+ * PMUnits function
+ *  Displays a modal for managing units of a property.
+ * 
+ * @param {boolean} show - Displays unit management modal.
+ * @param {function} handleClose - Function to close modal.
+ * 
+ * @returns {JSX.Element} - Modal for a property manager's unit management. 
+ */
 function PMUnits({ show, handleClose }) {
     const [units, setUnits] = useState([]);
     const [addingUnit, setAddingUnit] = useState(false);
@@ -11,7 +21,7 @@ function PMUnits({ show, handleClose }) {
 
     const property_id = 1;
 
-    // Fetch all units for the property when modal opens
+    // Fetch all units for the property when modal opens.
     useEffect(() => {
         if (show) {
             fetch(`http://localhost:8080/api/property/unit/units?property_id=${property_id}`)
@@ -29,7 +39,7 @@ function PMUnits({ show, handleClose }) {
     const handleSaveNewUnit = () => {
         if (!newUnit.name) return alert('Please enter a unit name');
 
-        // Create unit
+        // Create unit.
         fetch('http://localhost:8080/api/property/unit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -37,7 +47,7 @@ function PMUnits({ show, handleClose }) {
         })
             .then(res => res.json())
             .then(createdUnit => {
-                // Fetch all units again to include the new one
+                // Fetch all units again to include the new one.
                 return fetch(`http://localhost:8080/api/property/unit/units?property_id=${property_id}`)
                     .then(res => res.json())
                     .then(data => {
@@ -50,7 +60,7 @@ function PMUnits({ show, handleClose }) {
 
     const handleRemoveUnit = (unitId) => {
         setUnits(prev => prev.filter(unit => unit.unit_id !== unitId));
-        // TODO: call to the backend to remove unit
+        // TODO: call to the backend to remove unit.
     };
 
     return (

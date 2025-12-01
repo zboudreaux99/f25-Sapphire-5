@@ -5,6 +5,16 @@ import ListGroup from 'react-bootstrap/ListGroup';
 import Toast from 'react-bootstrap/Toast';
 import ToastContainer from 'react-bootstrap/ToastContainer';
 
+/**
+ * Rewards function
+ *  Displays a modal showing tenant rewards by property.
+ *  Displays toast notification when reward is picked by the tenant.
+ *  
+ * @param {boolean} show - Displays rewards modal.
+ * @param {function} handleClose - Function to close modal.
+ * 
+ * @returns {JSX.Element} Modal for tenant rewards and toast notifications.
+ */
 function Rewards({ show, handleClose }) {
 
     const [rewards, setRewards] = useState([]);
@@ -36,16 +46,16 @@ function Rewards({ show, handleClose }) {
     }, [show]);
 
     const handleSelectReward = (reward) => {
-        // Remove reward immediately
+        // Remove reward immediately.
         setRewards((prev) =>
             prev.filter((r) => r.reward_id !== reward.reward_id)
         );
 
-        // Show toast
+        // Show toast.
         setToastMessage(`${reward.reward_name} redeemed!`);
         setShowToast(true);
 
-        // No modal closing
+        // No modal closing.
     };
 
     return (

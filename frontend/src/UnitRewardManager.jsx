@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
 import { Form, Button, Collapse, ListGroup } from "react-bootstrap";
 
+/**
+ * UnitRewardManager function
+ *  Allows a property manager to manage rewards by units, including:
+ *  - Creating new rewards (name and description).
+ *  - Assigning rewards by units.
+ *  - Viewing assigned rewards per unit.
+ *
+ * @param {number} [propertyId = 1] - ID of the property for which rewards and units are managed.
+ * 
+ * @returns {JSX.Element} Reward management interface.
+ */
 function UnitRewardManager({ propertyId = 1 }) {
     const [rewards, setRewards] = useState([]);
     const [units, setUnits] = useState([]);
@@ -13,7 +24,7 @@ function UnitRewardManager({ propertyId = 1 }) {
     const [showRewards, setShowRewards] = useState(false);
     const [openUnits, setOpenUnits] = useState({}); // per-unit collapse state
 
-    // Fetch rewards
+    // Fetch rewards.
     const fetchRewards = async () => {
         try {
             const res = await fetch(`http://localhost:8080/api/property/rewards?property_id=${propertyId}`);
@@ -26,7 +37,7 @@ function UnitRewardManager({ propertyId = 1 }) {
         }
     };
 
-    // Fetch units
+    // Fetch units.
     const fetchUnits = async () => {
         try {
             const res = await fetch(`http://localhost:8080/api/property/unit/units?property_id=${propertyId}`);
@@ -39,7 +50,7 @@ function UnitRewardManager({ propertyId = 1 }) {
         }
     };
 
-    // Fetch assigned rewards
+    // Fetch assigned rewards.
     const fetchUnitRewards = async () => {
         try {
             const allRewards = [];
@@ -66,7 +77,7 @@ function UnitRewardManager({ propertyId = 1 }) {
         if (units.length > 0) fetchUnitRewards();
     }, [units]);
 
-    // Create new reward
+    // Create new reward.
     const handleCreateReward = async () => {
         if (!newRewardName || !newRewardDescription) return;
         try {
@@ -90,7 +101,7 @@ function UnitRewardManager({ propertyId = 1 }) {
         }
     };
 
-    // Assign reward to selected unit
+    // Assign reward to selected unit.
     const handleAssignReward = async () => {
         if (!selectedReward || !selectedUnit) {
             setMessage("Please select both reward and unit.");

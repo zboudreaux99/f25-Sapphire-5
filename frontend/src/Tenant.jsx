@@ -6,6 +6,16 @@ import Rewards from "./Rewards";
 import Report from "./Report";
 import MonthlyChart from "./MonthlyChart";
 
+/**
+ * Tenant function
+ *  Displays the tenant dashboard, including:
+ *  - A welcome message with tenant email.
+ *  - A carousel chart view displayable by week, day, or hour.
+ *  - Bottom navigation bar (Home, Report, Rewards, Settings).
+ *  - Modals for rewards and report submission.
+ * 
+ * @returns {JSX.Element} Tenant dashboard.
+ */
 function Tenant() {
     const navigate = useNavigate();
 
