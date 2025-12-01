@@ -3,6 +3,16 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 
+/** 
+ * Report function
+ *  Displays a report form where tenants can submit tenant name or apartment number and the issue description.
+ *
+ * @param {boolean} show - Displays Report a Tenant modal.
+ * @param {function} handleClose - Function to close modal.
+ * @param {function} handleSubmitReport - Function to receive reported data.
+ * 
+ * @returns {JSX.Element} - Modal for fill-out form necessary to submit a report.
+ */
 function Report({ show, handleClose, handleSubmitReport }) {
     const [reportedTenant, setReportedTenant] = useState('');
     const [details, setDetails] = useState('');
@@ -18,7 +28,7 @@ function Report({ show, handleClose, handleSubmitReport }) {
 
         if (handleSubmitReport) handleSubmitReport(reportData);
 
-        // Clear form and close modal
+        // Clear form and close modal.
         setReportedTenant('');
         setDetails('');
         handleClose();
