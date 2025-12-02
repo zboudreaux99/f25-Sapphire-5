@@ -34,10 +34,18 @@ app.get('/api/manager/dashboard', authMiddleware, roleMiddleware(['manager', 'ad
   res.json({ message: 'Manager dashboard' });
 });
 
-app.listen(8080, async () => {
-    console.log('server listening on port 8080');
-    //intialize emailService
-    await initializeTransporter();
-    //intialize notification listener
-    listenForNotifications(pool);
-});
+// Ensures we don't start the server when importing app for tests
+if (require.main === module){
+  app.listen(8080, async () => {
+      console.log('server listening on port 8080');
+      //intialize emailService
+      await initializeTransporter();
+      //intialize notification listener only on non test environment
+      if (process.env.NODE_ENV !== 'test') {
+        listenForNotifications(pool);
+      }
+  });
+}
+
+// Export app for tests
+module.exports = app; 
