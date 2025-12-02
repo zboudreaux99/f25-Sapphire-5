@@ -446,7 +446,7 @@ router.post('/rule', async (req, res) => {
     try {
         const data = req.body;
         const {property_id, description, threshold_db, start_time, end_time, days_of_week} = data;
-        if(property_id === undefined || description === undefined, threshold_db === undefined || start_time === undefined, end_time === undefined || days_of_week === undefined){
+        if(property_id === undefined || description === undefined || threshold_db === undefined || start_time === undefined || end_time === undefined || days_of_week === undefined){
             return res.status(400).json({
                 error: 'Missing required property fields: {property_id, description, threshold_db, start_time, end_time, days_of_week'
             });
@@ -520,7 +520,7 @@ router.post('/complaints', async (req, res) => {
     try {
         const data = req.body;
         const {initiating_tenant_id, complained_about_unit_id, description} = data;
-        if(initiating_tenant_id === undefined, complained_about_unit_id === undefined, description === undefined){
+        if(initiating_tenant_id === undefined || complained_about_unit_id === undefined || description === undefined){
             return res.status(400).json({
                 error: 'Missing required property fields: {initiating_tenant_id, complained_about_unit_id, description}'
             });
@@ -555,7 +555,7 @@ router.post('/complaints/update', async (req, res) => {
         const data = req.body;
         const {complaint_id, status} = data;
         const statuses = ['open', 'in_progress', 'resolved'];
-        if(complaint_id === undefined, status === undefined){
+        if(complaint_id === undefined || status === undefined){
             return res.status(400).json({
                 error: 'Missing required property fields: {complaint_id, status}'
             });
