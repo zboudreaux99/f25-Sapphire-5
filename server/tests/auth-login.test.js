@@ -272,6 +272,10 @@ describe("POST /api/auth/login", () => {
       expect(decoded).toHaveProperty("role", "admin");
       expect(decoded).toHaveProperty("exp"); // Should have expiration
       expect(decoded).toHaveProperty("iat"); // Should have issued at
+
+      // Verify token expires in approximately 1 hour
+      const expiresIn = decoded.exp - decoded.iat;
+      expect(expiresIn).toBe(3600); // 1 hour in seconds
     });
   });
 
