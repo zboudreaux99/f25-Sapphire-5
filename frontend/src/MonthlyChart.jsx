@@ -26,7 +26,7 @@ ChartJS.register(
 /**
  * Creates a formatted chart that displays days, labels, and timestamps.
  *
- * @param month Holds the month for the chart.
+ * @param month Holds the values and formatting to view the month in the chart.
  * @param view Holds the formatted font and text size used when labeling the chart.
  *
  * @return The correct rendering and size of the monthly chart.

@@ -3,7 +3,7 @@ import { Container, Button} from "react-bootstrap";
 
 /**
  * PROTOTYPE: Button created to simulate a loud noise.
- *  When the noise level reaches '4', an email is sent out to notify a noise volation alert.
+ * When the noise level reaches '4', an email is sent out to notify a noise volation alert.
  * 
  * @return {Button} location and placement of "button".
  */
@@ -30,6 +30,7 @@ function LoudNoise(){
         setShowPopup(true);  
     };
 
+    // Returns container for noise button.
     return (
         <>
             <Container fluid className="vh-100 d-flex flex-column justify-content-center pt-5 gradient-background">

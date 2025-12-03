@@ -6,7 +6,7 @@ import axios from 'axios';
 
 /**
  * Report function
- *  Displays a report form where tenants can submit tenant name or apartment number and the issue description.
+ * Displays a report form where tenants can submit tenant name or apartment number and the issue description.
  *
  * @param {boolean} show - Displays Report a Tenant modal.
  * @param {function} handleClose - Function to close modal.
@@ -16,28 +16,28 @@ import axios from 'axios';
  */
 function Report({ show, handleClose, handleSubmitReport }) {
     const [details, setDetails] = useState('');
-    const [units, setUnits] = useState([]);  // List of available units
-    const [selectedUnitId, setSelectedUnitId] = useState("");  // Selected unit ID
+    const [units, setUnits] = useState([]);                     // List of available units.
+    const [selectedUnitId, setSelectedUnitId] = useState("");   // Selected unit ID.
 
-    const userId = localStorage.getItem('userId');  // Assuming userId is stored in localStorage
-    const propertyId = localStorage.getItem('propertyId') || 1;  // Default to propertyId 1 if not set
+    const userId = localStorage.getItem('userId');              // Assuming userId is stored in localStorage.
+    const propertyId = localStorage.getItem('propertyId') || 1; // Default to propertyId 1 if not set.
 
-    // Fetch available units for the property when the modal is opened
+    // Fetch available units for the property when the modal is opened.
     useEffect(() => {
         axios.get(`http://localhost:8080/api/property/unit/units?property_id=${propertyId}`)
             .then(response => {
-                setUnits(response.data);  // Set the list of available units
+                setUnits(response.data);                        // Set the list of available units.
             })
             .catch(error => {
                 console.error("Error fetching units:", error);
             });
     }, [propertyId]);
 
-    // Handle form submission
+    // Handle form submission.
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validate form data
+        // Validate form data.
         if (!selectedUnitId || !details) {
             alert("Please fill out all fields.");
             return;
@@ -45,7 +45,7 @@ function Report({ show, handleClose, handleSubmitReport }) {
 
         const complaintData = {
             initiating_tenant_id: userId,
-            complained_about_unit_id: selectedUnitId,  // Using the unit ID
+            complained_about_unit_id: selectedUnitId,           // Using the unit ID.
             description: details,
         };
 
@@ -57,7 +57,7 @@ function Report({ show, handleClose, handleSubmitReport }) {
 
             // Clear form and close modal.
             setDetails('');
-            setSelectedUnitId("");  // Reset selected unit ID
+            setSelectedUnitId("");                              // Reset selected unit ID.
             handleClose();
         } catch (error) {
             console.error('Error submitting complaint:', error);
@@ -65,6 +65,7 @@ function Report({ show, handleClose, handleSubmitReport }) {
         }
     };
 
+    // Returns the modal for the report interface.
     return (
         <Modal show={show} backdrop="static" keyboard={false} onHide={handleClose}>
             <Modal.Header closeButton>
