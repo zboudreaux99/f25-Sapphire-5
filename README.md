@@ -37,12 +37,12 @@ This program creates a formatted application that is used to measure and store n
 
 ## Setup Instructions
 
-### 1. [[Download Node.js | https://nodejs.org/en/download/current ]]
+### 1. [Download Node.js](https://nodejs.org/en/download/current)
 
-### 2. [[Clone the GitHub Repository | https://github.com/zboudreaux99/f25-Sapphire-5 ]]
+### 2. [Clone the GitHub Repository](https://github.com/zboudreaux99/f25-Sapphire-5)
 git@github.com:zboudreaux99/f25-Sapphire-5.git
 
-- Once the repository has been cloned use the command:
+- Once the repository has been cloned, use the command:
 cd frontend
 
 - then use the command:
@@ -51,6 +51,6 @@ npm run dev
 to start the server for the website.
 
 A local development URL should then be given through the terminal.
-Example:  http://localhost:12345/
+Example:  'http://localhost:12345/'
 
-Copy this link and paste it in a browser to access the website. The page to choose wheather you are a tenant or landlord should be displayed.
+Copy this link and paste it into a browser to access the website. The page to choose whether you are a tenant or a landlord should be displayed.
