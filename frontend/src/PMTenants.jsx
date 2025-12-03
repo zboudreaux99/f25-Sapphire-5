@@ -12,13 +12,13 @@ import Form from "react-bootstrap/Form";
  * 
  * @return The state of the modal.
  */
-function PMTenants({ show, handleClose }) {
+function PMTenants({ show, handleClose, propertyId = 1, onDataChanged}) {
     const [tenants, setTenants] = useState([]);
     const [units, setUnits] = useState([]);
     const [addingTenant, setAddingTenant] = useState(false);
     const [newTenant, setNewTenant] = useState({ tenant_name: "", unit_id: null });
 
-    const property_id = 1;
+    const property_id = propertyId;
 
     const normalizeUnits = (raw) => {
         return raw.map((u, idx) => {
@@ -51,7 +51,7 @@ function PMTenants({ show, handleClose }) {
 
     useEffect(() => {
         if (show) loadTenants();
-    }, [show]);
+    }, [show, property_id]);
 
     const handleSaveNewTenant = async () => {
         if (!newTenant.tenant_name || !newTenant.unit_id) {
@@ -60,7 +60,7 @@ function PMTenants({ show, handleClose }) {
         }
 
         const payload = {
-            user_id: 1, // Keep using the same user_id for simple tenants.
+            user_id: null, // Keep using the same user_id for simple tenants.
             name: newTenant.tenant_name,
             unit_id: Number(newTenant.unit_id)
         };
@@ -88,6 +88,11 @@ function PMTenants({ show, handleClose }) {
             }
 
             await loadTenants(); // Reload tenant list.
+
+            if (onDataChanged) {
+                onDataChanged();
+            }
+
             setAddingTenant(false);
             setNewTenant({ tenant_name: "", unit_id: null });
 
@@ -108,6 +113,11 @@ function PMTenants({ show, handleClose }) {
             });
             await res.json();
             await loadTenants(); // Reload tenant list after removal.
+
+            if (onDataChanged) {
+                onDataChanged();
+            }
+
         } catch (err) {
             console.error("handleRemoveTenant ERROR:", err);
         }

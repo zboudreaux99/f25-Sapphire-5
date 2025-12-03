@@ -6,16 +6,6 @@ import PMTenants from "./PMTenants";
 import PMUnits from "./PMUnits";
 import UnitRewardManager from "./UnitRewardManager";
 
-/**
- * PropertyManager function
- *  Displays the property manager dashboard, including:
- *  - A welcome message with property manager name.
- *  - A property's details (address, units, tenants, complaints, rewards).
- *  - Bottom navigation bar (Home, Tenants, Units, Settings).
- *  - Modals for tenant and unit managing.
- 
- * @returns {JSX.Element} - Property Manager dashboard.
- */
 function PropertyManager() {
     const navigate = useNavigate();
 
@@ -23,6 +13,9 @@ function PropertyManager() {
     const [propertyData, setPropertyData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [activePropertyId, setActivePropertyId] = useState(1);
+    const [hiddenPropertyIds, setHiddenPropertyIds] = useState([]);
+    
 
     const [showTenants, setShowTenants] = useState(false);
     const [showUnits, setShowUnits] = useState(false);
@@ -32,13 +25,14 @@ function PropertyManager() {
     const [newPropertyName, setNewPropertyName] = useState("");
     const [newPropertyAddress, setNewPropertyAddress] = useState("");
 
-    const fetchData = async () => {
+    const fetchData = async (propertyId, options = {}) => {
+        const { skipLoadingState = false } = options;
         try {
-            setLoading(true);
+            if (!skipLoadingState) setLoading(true);
 
             const [managerRes, propertyRes] = await Promise.all([
-                fetch("http://localhost:8080/api/property/managers?property_id=1"),
-                fetch("http://localhost:8080/api/property?property_id=1")
+            fetch(`http://localhost:8080/api/property/managers?property_id=${propertyId}`),
+            fetch(`http://localhost:8080/api/property?property_id=${propertyId}`)
             ]);
 
             if (!managerRes.ok || !propertyRes.ok) throw new Error("Failed to fetch data");
@@ -48,12 +42,12 @@ function PropertyManager() {
                 propertyRes.json()
             ]);
 
-            if (managerDataJson.length > 0) setManagerData(managerDataJson[0]);
+            if (managerDataJson.length > 0) { setManagerData((prev) => prev ?? managerDataJson[0]);}
             if (propertyDataJson.length > 0) setPropertyData(propertyDataJson[0]);
         } catch (err) {
             setError(err.message);
         } finally {
-            setLoading(false);
+            if (!skipLoadingState) setLoading(false);
         }
     };
 
@@ -75,7 +69,18 @@ function PropertyManager() {
                 .map((arr) => (Array.isArray(arr) && arr.length > 0 ? arr[0] : null))
                 .filter((item) => item !== null);
 
-            setProperties(list);
+            setProperties((prev) => {
+                const merged = [...prev, ...list];
+
+                const seen = new Set();
+                return merged.filter((p) => {
+                    const id = p.property_id;
+                    if (seen.has(id)) return false;
+                    seen.add(id);
+                    return true;
+                });
+            });
+
         } catch (err) {
             console.error("Error loading properties for modal:", err);
         }
@@ -175,21 +180,37 @@ const handleDeleteProperty = async (propertyId) => {
     }
 };
 
-    // Fetch on page load.
+    // Fetch on initial page load
     useEffect(() => {
-        fetchData();
+        fetchData(activePropertyId);
     }, []);
 
-    // Closing actions for modals.
+    // Closing actions for modals
     const handleCloseUnits = () => {
         setShowUnits(false);
-        fetchData();   // Refresh data when Units modal closes.
     };
 
     const handleCloseTenants = () => {
         setShowTenants(false);
-        fetchData();   // Refresh data when Tenants modal closes.
     };
+
+    const handleSelectProperty = (property) => {
+    const propertyId = Number(property.property_id);
+
+    setActivePropertyId(propertyId);// Update which property is active
+    fetchData(propertyId);
+    setPropertyData(property);    // Use the property info on dashboard summary card
+
+    localStorage.setItem("activePropertyId", String(propertyId));
+
+    setShowPropertyModal(false);
+};
+
+    const refreshOverview = () => {// Re-fetch overview stats for the currently active property
+        if (!activePropertyId) return;
+        fetchData(activePropertyId, { skipLoadingState: true });
+};
+
 
     if (loading) return (
         <Container className="d-flex justify-content-center align-items-center vh-100">
@@ -281,13 +302,20 @@ const handleDeleteProperty = async (propertyId) => {
                         </p>
                     ) : (
                         <ul className="list-unstyled mb-3">
-                            {properties.map((prop) => (
+                            {properties
+                            .filter((prop) => !hiddenPropertyIds.includes(Number(prop.property_id)))
+                            .map((prop) => (
                                 <li
                                     key={prop.property_id}
                                     className="d-flex justify-content-between align-items-start mb-2"
                                 >
                                     <div>
-                                        <strong>{prop.property_name}</strong>
+                                        <strong>
+                                        {prop.property_name}
+                                        {Number(prop.property_id) === Number(activePropertyId) && (
+                                            <span className="badge bg-primary ms-2">Active</span>
+                                        )}
+                                        </strong>
                                         <div className="small text-muted">
                                             {prop.address001 && <span>{prop.address001}</span>}
                                             {prop.city && prop.state && (
@@ -299,18 +327,23 @@ const handleDeleteProperty = async (propertyId) => {
                                             )}
                                         </div>
                                     </div>
-                                    {/* Only shows the Delete button for properties that are NOT ID 1 or 2 to avoid conflict with simulated data*/}
-                                    {![1, 2].includes(Number(prop.property_id)) && (
-                                    <Button
-                                        variant="outline-danger"
-                                        size="sm"
-                                        onClick={() =>
-                                            handleDeleteProperty(prop.property_id)
-                                        }
-                                    >
-                                        Delete
-                                    </Button>
-                                    )}
+                                    <div className="d-flex gap-2">
+                                        <Button
+                                            variant="outline-primary"
+                                            size="sm"
+                                            onClick={() => handleSelectProperty(prop)}
+                                        >
+                                            Set Active
+                                        </Button>
+
+                                            <Button
+                                                variant="outline-danger"
+                                                size="sm"
+                                                onClick={() => handleDeleteProperty(prop.property_id)}
+                                            >
+                                                Delete
+                                            </Button>
+                                    </div>
                                 </li>
                             ))}
                         </ul>
@@ -391,8 +424,9 @@ const handleDeleteProperty = async (propertyId) => {
                 </Nav.Item>
             </Navbar>
 
-            <PMTenants show={showTenants} handleClose={handleCloseTenants} />
-            <PMUnits show={showUnits} handleClose={handleCloseUnits} />
+            <PMTenants show={showTenants} handleClose={handleCloseTenants} propertyId={activePropertyId} onDataChanged={refreshOverview} />
+            <PMUnits show={showUnits} handleClose={handleCloseUnits} propertyId={activePropertyId} onDataChanged={refreshOverview} />
+            <UnitRewardManager propertyId={propertyData?.property_id ?? activePropertyId} onDataChanged={refreshOverview} />
         </>
     );
 };
