@@ -7,7 +7,7 @@ import Form from 'react-bootstrap/Form';
 
 /**
  * PMUnits function
- *  Displays a modal for managing units of a property.
+ * Displays a modal for managing units of a property.
  * 
  * @param {boolean} show - Displays unit management modal.
  * @param {function} handleClose - Function to close modal.
@@ -65,6 +65,7 @@ function PMUnits({ show, handleClose, propertyId = 1, onDataChanged}) {
         // TODO: call to the backend to remove unit.
     };
 
+    // Returns the modal with save and loading features of units for the property manager.
     return (
         <Modal show={show} backdrop="static" keyboard={false} onHide={handleClose} className="blur-background">
             

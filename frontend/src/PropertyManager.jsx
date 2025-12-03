@@ -51,10 +51,10 @@ function PropertyManager() {
         }
     };
 
-    // Load properties for the modal
+    // Load properties for the modal.
     const loadPropertiesForModal = async () => {
         try {
-            // Load the simulated data for property IDs 1 and 2
+            // Load the simulated data for property IDs 1 and 2.
             const propertyIds = [1, 2];
 
             const responses = await Promise.all(
@@ -97,7 +97,7 @@ function PropertyManager() {
         setNewPropertyAddress("");
     };
 
-// Creates a new property using the backend endpoint (POST /api/property)
+// Creates a new property using the backend endpoint (POST /api/property).
 const handleAddProperty = async () => {
     const trimmedName = newPropertyName.trim();
     const trimmedAddress = newPropertyAddress.trim();
@@ -143,7 +143,7 @@ const handleAddProperty = async () => {
 };
 
 const handleDeleteProperty = async (propertyId) => {
-    // Cannot delete simulated property ids 1 and 2
+    // Cannot delete simulated property ids 1 and 2.
     if ([1, 2].includes(Number(propertyId))) {
         alert("This property cannot be deleted.");
         return;
@@ -172,7 +172,7 @@ const handleDeleteProperty = async (propertyId) => {
             return;
         }
 
-        // If backend succeeded, remove from local list
+        // If backend succeeded, remove from local list.
         setProperties((prev) => prev.filter((p) => p.property_id !== propertyId));
     } catch (err) {
         console.error("Error deleting property:", err);
@@ -180,12 +180,12 @@ const handleDeleteProperty = async (propertyId) => {
     }
 };
 
-    // Fetch on initial page load
+    // Fetch on initial page load.
     useEffect(() => {
         fetchData(activePropertyId);
     }, []);
 
-    // Closing actions for modals
+    // Closing actions for modals.
     const handleCloseUnits = () => {
         setShowUnits(false);
     };
@@ -197,16 +197,16 @@ const handleDeleteProperty = async (propertyId) => {
     const handleSelectProperty = (property) => {
     const propertyId = Number(property.property_id);
 
-    setActivePropertyId(propertyId);// Update which property is active
+    setActivePropertyId(propertyId);    // Update which property is active.
     fetchData(propertyId);
-    setPropertyData(property);    // Use the property info on dashboard summary card
+    setPropertyData(property);          // Use the property info on dashboard summary card.
 
     localStorage.setItem("activePropertyId", String(propertyId));
 
     setShowPropertyModal(false);
 };
 
-    const refreshOverview = () => {// Re-fetch overview stats for the currently active property
+    const refreshOverview = () => {     // Re-fetch overview stats for the currently active property.
         if (!activePropertyId) return;
         fetchData(activePropertyId, { skipLoadingState: true });
 };

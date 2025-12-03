@@ -21,6 +21,8 @@ const apiCall = () => {
 /**
  * Renders a customizable button component.
  * 
+ * Redirects an empty path to /welcome -> login -> tenant or property-manager -> button.
+ * 
  * @returns {Router} Configures an element to render when a pattern matches the current location.
  */
 function App() {

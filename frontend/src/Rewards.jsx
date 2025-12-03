@@ -7,8 +7,8 @@ import ToastContainer from 'react-bootstrap/ToastContainer';
 
 /**
  * Rewards function
- *  Displays a modal showing tenant rewards by property.
- *  Displays toast notification when reward is picked by the tenant.
+ * Displays a modal showing tenant rewards by property.
+ * Displays toast notification when reward is picked by the tenant.
  *  
  * @param {boolean} show - Displays rewards modal.
  * @param {function} handleClose - Function to close modal.
@@ -58,6 +58,7 @@ function Rewards({ show, handleClose }) {
         // No modal closing.
     };
 
+    // Returns the modal for the rewards interface.
     return (
         <>
             <Modal
