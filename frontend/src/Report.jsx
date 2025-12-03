@@ -1,37 +1,68 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
+import axios from 'axios';
 
-/** 
+/**
  * Report function
  *  Displays a report form where tenants can submit tenant name or apartment number and the issue description.
  *
  * @param {boolean} show - Displays Report a Tenant modal.
  * @param {function} handleClose - Function to close modal.
  * @param {function} handleSubmitReport - Function to receive reported data.
- * 
+ *
  * @returns {JSX.Element} - Modal for fill-out form necessary to submit a report.
  */
 function Report({ show, handleClose, handleSubmitReport }) {
-    const [reportedTenant, setReportedTenant] = useState('');
     const [details, setDetails] = useState('');
+    const [units, setUnits] = useState([]);  // List of available units
+    const [selectedUnitId, setSelectedUnitId] = useState("");  // Selected unit ID
 
-    const handleSubmit = (e) => {
+    const userId = localStorage.getItem('userId');  // Assuming userId is stored in localStorage
+    const propertyId = localStorage.getItem('propertyId') || 1;  // Default to propertyId 1 if not set
+
+    // Fetch available units for the property when the modal is opened
+    useEffect(() => {
+        axios.get(`http://localhost:8080/api/property/unit/units?property_id=${propertyId}`)
+            .then(response => {
+                setUnits(response.data);  // Set the list of available units
+            })
+            .catch(error => {
+                console.error("Error fetching units:", error);
+            });
+    }, [propertyId]);
+
+    // Handle form submission
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const reportData = {
-            reportedTenant,
-            details,
-            date: new Date().toISOString(),
+        // Validate form data
+        if (!selectedUnitId || !details) {
+            alert("Please fill out all fields.");
+            return;
+        }
+
+        const complaintData = {
+            initiating_tenant_id: userId,
+            complained_about_unit_id: selectedUnitId,  // Using the unit ID
+            description: details,
         };
 
-        if (handleSubmitReport) handleSubmitReport(reportData);
+        try {
+            const response = await axios.post('http://localhost:8080/api/property/complaints', complaintData);
+            console.log('Complaint submitted successfully', response.data);
 
-        // Clear form and close modal.
-        setReportedTenant('');
-        setDetails('');
-        handleClose();
+            if (handleSubmitReport) handleSubmitReport(response.data);
+
+            // Clear form and close modal.
+            setDetails('');
+            setSelectedUnitId("");  // Reset selected unit ID
+            handleClose();
+        } catch (error) {
+            console.error('Error submitting complaint:', error);
+            alert('There was an error submitting your complaint. Please try again.');
+        }
     };
 
     return (
@@ -43,14 +74,24 @@ function Report({ show, handleClose, handleSubmitReport }) {
             <Form onSubmit={handleSubmit}>
                 <Modal.Body>
                     <Form.Group className="mb-3">
-                        <Form.Label>Tenant Name or Apartment Number</Form.Label>
+                        <Form.Label>Select Unit</Form.Label>
                         <Form.Control
-                            type="text"
-                            placeholder="Enter tenant name or unit"
-                            value={reportedTenant}
-                            onChange={(e) => setReportedTenant(e.target.value)}
+                            as="select"
+                            value={selectedUnitId}
+                            onChange={(e) => setSelectedUnitId(e.target.value)}
                             required
-                        />
+                        >
+                            <option value="">Select a unit</option>
+                            {units.length > 0 ? (
+                                units.map((unit) => (
+                                    <option key={unit.unit_id} value={unit.unit_id}>
+                                        {unit.unit_name} {/* Assuming `unit_name` is the name */}
+                                    </option>
+                                ))
+                            ) : (
+                                <option value="">No units available</option>
+                            )}
+                        </Form.Control>
                     </Form.Group>
 
                     <Form.Group className="mb-3">
