@@ -9,6 +9,7 @@ import Welcome from './Welcome';
 import Tenant from './Tenant';
 import PropertyManager from './PropertyManager';
 import LoudNoise from './LoudNoise';
+import Register from './Register';
 
 
 // Example API call to retrieve sensor data.
@@ -35,6 +36,7 @@ function App() {
           <Route path="/tenant" element={<Tenant/>} />
           <Route path="/property-manager" element={<PropertyManager/>} />
           <Route path="/button" element={<LoudNoise/>} />
+          <Route path="/register" element={<Register/>} />
         </Routes>
       </Router>
     </>
