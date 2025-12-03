@@ -14,12 +14,12 @@ import Form from 'react-bootstrap/Form';
  * 
  * @returns {JSX.Element} - Modal for a property manager's unit management. 
  */
-function PMUnits({ show, handleClose }) {
+function PMUnits({ show, handleClose, propertyId = 1, onDataChanged}) {
     const [units, setUnits] = useState([]);
     const [addingUnit, setAddingUnit] = useState(false);
     const [newUnit, setNewUnit] = useState({ name: '' });
 
-    const property_id = 1;
+    const property_id = propertyId;
 
     // Fetch all units for the property when modal opens.
     useEffect(() => {
@@ -29,7 +29,7 @@ function PMUnits({ show, handleClose }) {
                 .then(data => setUnits(data))
                 .catch(err => console.error('Error fetching units:', err));
         }
-    }, [show]);
+    }, [show, property_id]);
 
     const handleAddClick = () => {
         setAddingUnit(true);
@@ -46,13 +46,15 @@ function PMUnits({ show, handleClose }) {
             body: JSON.stringify({ name: newUnit.name, property_id })
         })
             .then(res => res.json())
-            .then(createdUnit => {
-                // Fetch all units again to include the new one.
+            .then(createdUnit => {// Fetch all units again to include the new one.
                 return fetch(`http://localhost:8080/api/property/unit/units?property_id=${property_id}`)
                     .then(res => res.json())
                     .then(data => {
                         setUnits(data);
                         setAddingUnit(false);
+                        if (onDataChanged) {
+                            onDataChanged();
+                        }
                     });
             })
             .catch(err => console.error('Error creating/fetching unit:', err));
