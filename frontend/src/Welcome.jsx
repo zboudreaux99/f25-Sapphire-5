@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 
 /**
  * Welcome function
- *  Displays the welcome screen for users.
- *  Allows user a role selection (Tenant, Landlord).
- *  Navigates to the login page based on the selected role.
+ * Displays the welcome screen for users.
+ * Allows user a role selection (Tenant, Landlord).
+ * Navigates to the login page based on the selected role.
  *
  * @returns {JSX.Element} Welcome screen interface.
  */
@@ -20,6 +20,7 @@ function Welcome() {
         navigate('/login');
     }
 
+    // Returns a cotainer for the welcome screen interface.
     return (
         <>
             <Container

@@ -1,7 +1,8 @@
 import Button from 'react-bootstrap/Button';
 
 /**
- * Button created to simulate a loud noise.
+ * Button created to simulate a loud noise, which will cause a 
+ * spike in the noise sensor graph in the application.
  *
  * @return {Button} location and placement of "button".
  */

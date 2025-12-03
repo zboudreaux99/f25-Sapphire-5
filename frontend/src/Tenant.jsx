@@ -8,7 +8,7 @@ import MonthlyChart from "./MonthlyChart";
 
 /**
  * Tenant function
- *  Displays the tenant dashboard, including:
+ * Displays the tenant dashboard, including:
  *  - A welcome message with tenant email.
  *  - A carousel chart view displayable by week, day, or hour.
  *  - Bottom navigation bar (Home, Report, Rewards, Settings).
@@ -19,7 +19,7 @@ import MonthlyChart from "./MonthlyChart";
 function Tenant() {
     const navigate = useNavigate();
 
-    // Get email from localStorage or fallback to placeholder
+    // Get email from localStorage or fallback to placeholder.
     const userEmail = localStorage.getItem('email') || 'Tenant';
 
     const [index, setIndex] = useState(0);
@@ -35,7 +35,7 @@ function Tenant() {
 
     const handleSubmitReport = (data) => {
         console.log("Report submitted:", data);
-         // TODO: Send this to the backend although this is a prototype
+         // TODO: Send this to the backend although this is a prototype.
     };
 
     const [chartView, setChartView] = useState("week");

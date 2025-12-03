@@ -57,10 +57,10 @@ function PropertyManager() {
         }
     };
 
-    // Load properties for the modal
+    // Load properties for the modal.
     const loadPropertiesForModal = async () => {
         try {
-            // Load the simulated data for property IDs 1 and 2
+            // Load the simulated data for property IDs 1 and 2.
             const propertyIds = [1, 2];
 
             const responses = await Promise.all(
@@ -92,7 +92,7 @@ function PropertyManager() {
         setNewPropertyAddress("");
     };
 
-// Creates a new property using the backend endpoint (POST /api/property)
+// Creates a new property using the backend endpoint (POST /api/property).
 const handleAddProperty = async () => {
     const trimmedName = newPropertyName.trim();
     const trimmedAddress = newPropertyAddress.trim();
@@ -138,7 +138,7 @@ const handleAddProperty = async () => {
 };
 
 const handleDeleteProperty = async (propertyId) => {
-    // Cannot delete simulated property ids 1 and 2
+    // Cannot delete simulated property ids 1 and 2.
     if ([1, 2].includes(Number(propertyId))) {
         alert("This property cannot be deleted.");
         return;

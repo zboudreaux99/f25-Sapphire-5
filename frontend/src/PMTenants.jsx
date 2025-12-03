@@ -28,7 +28,7 @@ function PMTenants({ show, handleClose }) {
         });
     };
 
-    // Load tenants and units.
+    // Sends request to backend to Load tenants and units.
     const loadTenants = async () => {
         try {
             // Units for dropdown.
@@ -53,6 +53,7 @@ function PMTenants({ show, handleClose }) {
         if (show) loadTenants();
     }, [show]);
 
+    // Sends backend reqest to save data of new tenant.
     const handleSaveNewTenant = async () => {
         if (!newTenant.tenant_name || !newTenant.unit_id) {
             alert("Please fill out all fields");
@@ -98,7 +99,7 @@ function PMTenants({ show, handleClose }) {
     };
 
 
-
+    // Sends backend request to remove the tenant.
     const handleRemoveTenant = async (tenantId) => {
         try {
             const res = await fetch("http://localhost:8080/api/property/unit/tenant/remove", {
@@ -113,6 +114,7 @@ function PMTenants({ show, handleClose }) {
         }
     };
 
+    // Returns the modal with save, loading, and deleting features of tenants for the property manager.
     return (
         <Modal show={show} onHide={handleClose} backdrop="static">
             <Modal.Header closeButton>

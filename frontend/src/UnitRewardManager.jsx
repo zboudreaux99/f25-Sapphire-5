@@ -3,7 +3,7 @@ import { Form, Button, Collapse, ListGroup } from "react-bootstrap";
 
 /**
  * UnitRewardManager function
- *  Allows a property manager to manage rewards by units, including:
+ * Allows a property manager to manage rewards by units, including:
  *  - Creating new rewards (name and description).
  *  - Assigning rewards by units.
  *  - Viewing assigned rewards per unit.
@@ -22,7 +22,7 @@ function UnitRewardManager({ propertyId = 1 }) {
     const [selectedUnit, setSelectedUnit] = useState("");
     const [message, setMessage] = useState("");
     const [showRewards, setShowRewards] = useState(false);
-    const [openUnits, setOpenUnits] = useState({}); // per-unit collapse state
+    const [openUnits, setOpenUnits] = useState({}); // Per-unit collapse state.
 
     // Fetch rewards.
     const fetchRewards = async () => {
