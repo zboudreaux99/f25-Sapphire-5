@@ -8,5 +8,5 @@
 - wbrow004 - Wes Brown - wbrow004@odu.edu
 - yahya533 - Yahya Mohamed - ymoha005@odu.edu
 - christineyp - Christiney Ponton - cpont002@odu.edu
-- ptaylorcook - pcook002@odu.edu
+- ptaylorcook - Priscilla Cook - pcook002@odu.edu
 - smayb001 - Shawn Maybush - smayb001@odu.edu
